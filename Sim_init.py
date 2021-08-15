@@ -17,5 +17,11 @@ class Sim_init:
         self.fleet_size = 1
         self.v_cap = 10
         self.max_delay = datetime.timedelta(minutes=10)
+
+        #Init the map
         self.map = ox.graph_from_place('Raanana, Israel', network_type='drive')
+        #Add speeds and time travel to map
+        self.map = ox.add_edge_speeds(self.map)
+        self.map = ox.add_edge_travel_times(self.map)
+
 
