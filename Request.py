@@ -35,6 +35,11 @@ class Request:
         self.estimated_dropoff_time = dfTime
         return
 
+    # Time to dest is T(Origin,Destination) time, we add it to time of request and get the earliest time to dest.
+    def update_earliest_time_to_dest(self,time_to_dest):
+        self.time_of_request+time_to_dest
+        return
+
 
 
 
