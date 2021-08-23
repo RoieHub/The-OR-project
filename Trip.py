@@ -1,15 +1,18 @@
 
+"""
+A trip T is a set of request that can be combined and served by a single vehicle.
+A trip may have one or more candidate vehicles for  execution.
+"""
 class Trip:
     class_counter = 0
-    def __init__(self,reqsts=None,candidte_v=None):
+
+    def __init__(self, requests=None, candidate_v=None):
         self.id = Trip.class_counter
         Trip.class_counter +=1
-        if reqsts is None:
+        if requests is None:
             self.requests = []
-        if candidte_v is None:
+        if candidate_v is None:
             self.v_candidates = []
-
-
 
     def add_request(self,req):
         self.requests.append(req)
