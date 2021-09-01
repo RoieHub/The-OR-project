@@ -99,6 +99,7 @@ def valid_trip2_min_cost(r1, r2, map,max_travel_delay):
         return True , min_path
     else :
         return False , min_path
+    ### TO DO! the fastest path might not pass the second check while ,  slower path might. or is it?
 
 
 
