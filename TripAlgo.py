@@ -117,7 +117,55 @@ def path_builder(p1,p2,p3) :
     else :
         return p3,'s1s2d2d1'
 
+#using DFBnB for travel
+def travel(v: Vehicle, R: Request): #Request should be an array. Need to check how to do that.
+    best_cost = -1 #cost, or delay, caused with the best found route
+    best_route = []
 
+
+
+class travel_node:
+    """Nodes in the DFBnB tree, for the travel function"""
+    #parent = null
+
+    def __init__(self, v: Vehicle, requests: Tuple[Request, ...], copy_me: travel_node=None, destination_to_remove: Tuple[int, Request, char]=None):
+        if copy_me!=None:
+            self.time = copy_me.time #TODO + time to get from v.current_location to destination_to_remove[1].destination
+            self.my_vehicle = copy_me.my_vehicle
+            self.current_possible_destinations = copy_me.current_possible_destinations
+
+            self.current_location = destination_to_remove[1].destination
+            if destination_to_remove[2]=='p': #if the vehicle drove to a request, a pickiup, add the dropoff to the current_possible_destinations
+                extra_time_left_to_dropoff = destination_to_remove[1]
+
+
+        else: # copy_me==None:
+            self.time = datetime().datetime.now()
+            self.current_location = v.curr_pos
+            self.my_vehicle = v
+            self.current_possible_destinations = []
+
+            #add all the requests as possible destinations, calculating time left to start going to that destination, using that as the value to compare for the heap
+
+            # According to the article -
+            # "If a request is matched to a vehicle at any given iteration, its latest pick-up time is reduced to the expected pick-up time by that vehicle..."
+            # So we check for every request if it wasn't already matched to a vehicle before, i.e. if r.estimated_dropoff_time == None
+            # If it wasn't, the extra_time_left_to_pickup will be set according to r.latest_time_to_pick_up
+            # Otherwise, the request was already matched to a vehicle, and the "ti,e to beat" is r.latest_time_to_pick_up, which should be the time when the vehicle already
+            # matched to that request planned to get to it.
+
+            for r in requests:
+                # extra_time_left_to_pickup = r.latest_time_to_pick_up - now
+                if r.estimated_dropoff_time == None:
+                    extra_time_left_to_pickup = r.latest_time_to_pick_up  - self.time #TODO minus time to get from vehicle's current location to request origin
+                else: #in this case, a vehicle was already assigned
+                    extra_time_left_to_pickup = r.estimated_dropoff_time - self.time #TODO minus time to get from vehicle's current location to request origin
+                heappush(self.current_possible_destinations, (extra_time_left_to_pickup, r, 'p')) #the 'p' is to say this is a pickup
+
+            #add all the passangers currently on the vehicle as possible destinations, but this time calculate time left to start going their destinations (as they were already picked-up)
+            for vr in v.passengers:
+                extra_time_left_to_dropoff = vr.estimated_dropoff_time - self.time #TODO minus time to get from vehicle's current location to passenger destination
+                heappush(self.current_possible_destinations, (extra_time_left_to_dropoff, vr, 'd')) #the 'd' is to say this is a dropoff
 
 
 

@@ -4,6 +4,10 @@ import datetime
 
 class Request:
     class_counter = 0
+    max_waiting_time = datetime.timedelta(minutes=5)
+    travel_delay = datetime.timedelta(minutes=15) # Max time that can be added to when the person making the request will reach their destination.
+                                                  # This is used for calculating his max overall delay (i.e. if he had taken a private taxi when he made the request, travel_delay is how much time will verall be added to his delay, including waiting)
+
     """"id: int
     origin: int   # Origin Node ID
     destination: int #  Destination Node ID
@@ -20,10 +24,12 @@ class Request:
         self.origin = ori
         self.destination = dest
         self.time_of_request = datetime.datetime.now()
-        self.latest_time_to_pick_up = self.time_of_request + datetime.timedelta(minutes=15)
+        self.latest_time_to_pick_up = self.time_of_request + max_waiting_time
         self.actual_pick_up_time=None
-        self.estimated_dropoff_time=None  #Need to calc expected time to dropoff.
-        self.earliest_time_to_dest=None
+        self.estimated_dropoff_time = None  #Explanation - A value will be given to this when a vehicle wil be first assigned to him. If it is none when assigning a vehicle to him,
+                                                            # the time a vehicle that wants to be assigned to it must be at least earliest_time_to_dest.
+                                                            # else, meaning this (estimated_dropoff_time) is not none, it itself is the time to beat - so if a vehicle wants to be assigned to this request, it must be better then it.
+        self.earliest_time_to_dest = self.time_of_request #TODO - add to this the time of shortest path from his origin to his destination.
 
 
     def update_actual_pick_up_time(self, puTime):
