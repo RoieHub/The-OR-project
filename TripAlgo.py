@@ -118,7 +118,7 @@ def path_builder(p1,p2,p3) :
         return p3,'s1s2d2d1'
 
 #using DFBnB for travel
-def travel(v: Vehicle, R: Request): #Request should be an array. Need to check how to do that.
+def travel(v: Vehicle, R: Tuple[Request, ...]): #Request should be an array. Need to check how to do that.
     best_cost = -1 #cost, or delay, caused with the best found route
     best_route = []
 
@@ -128,18 +128,53 @@ class travel_node:
     """Nodes in the DFBnB tree, for the travel function"""
     #parent = null
 
-    def __init__(self, v: Vehicle, requests: Tuple[Request, ...], copy_me: travel_node=None, destination_to_remove: Tuple[int, Request, char]=None):
-        if copy_me!=None:
-            self.time = copy_me.time #TODO + time to get from v.current_location to destination_to_remove[1].destination
+    def __init__(self, v: Vehicle, requests: Tuple[Request, ...], sp_dict, copy_me: travel_node=None, destination_to_remove: Tuple[Request, char]=None):
+        #destination_to_remove is a tuple of 1. The request that we now drove to, 2.A char with the value 'p' or 'd', to know if it is pickup or dropoff
+
+        if copy_me!=None: #case of not initial node of the tree
+            self.previous_location = copy_me.current_location
+            if destination_to_remove[1] == 'p':
+                added_time = datetime.timedelta(seconds=sp_dict[copy_me.current_location][destination_to_remove[0].origin])
+                self.current_location = destination_to_remove[0].origin
+            else:
+                added_time = sp_dict[copy_me.current_location][destination_to_remove[0].destination]
+                self.current_location = destination_to_remove[0].destination
+
+            self.time = copy_me.time +  added_time
             self.my_vehicle = copy_me.my_vehicle
             self.current_possible_destinations = copy_me.current_possible_destinations
 
-            self.current_location = destination_to_remove[1].destination
-            if destination_to_remove[2]=='p': #if the vehicle drove to a request, a pickiup, add the dropoff to the current_possible_destinations
-                extra_time_left_to_dropoff = destination_to_remove[1]
+            #update the extra time left for all the tuples in the "current_possible_destinations" object.
+            #Calculated like this -
+            # 1. what they had before.
+            # 2. add the time it would have taken to get from the prev location to them
+            # 3. decrease the time it took to get from prev location to current location
+            # 4. decrease the time it will take to get from the current location to the node's pickup\dropoff
+
+            #After that, if we drove to a pickup, we will add that request's dropoff to the "current_possible_destinations" object
+
+            # After that, heapify the list
+            for c in self.current_possible_destinations:
+                if c[2] =='p':
+                    c[0] = c[0] + sp_dict[previous_location][c[1].origin] - added_time - sp_dict[self.current_location][c[1].origin]
+                else:
+                    c[0] = c[0] + sp_dict[previous_location][c[1].destination] - added_time - sp_dict[self.current_location][c[1].destination]
+                # c[0] = c[1]. self.time + sp_dict
+
+            if destination_to_remove[1] == 'p':  # if the vehicle drove to a request, a pickup, add the dropoff to the current_possible_destinations
+                dropoff_node = destination_to_remove[1].destination
+
+                extra_time_left_to_dropoff = self.time + sp_dict[self.current_location][destination_to_remove[0].destination]
+
+
+            heapify(self.current_possible_destinations)
+
+
+
 
 
         else: # copy_me==None:
+            self.previous_location = None
             self.time = datetime().datetime.now()
             self.current_location = v.curr_pos
             self.my_vehicle = v
