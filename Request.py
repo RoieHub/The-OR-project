@@ -31,6 +31,17 @@ class Request:
                                                             # else, meaning this (estimated_dropoff_time) is not none, it itself is the time to beat - so if a vehicle wants to be assigned to this request, it must be better then it.
         self.earliest_time_to_dest = self.time_of_request #TODO - add to this the time of shortest path from his origin to his destination.
 
+    def __init__(self, ori, dest,request_time):
+        self.id = Request.class_counter
+        Request.class_counter += 1
+        self.origin = ori
+        self.destination = dest
+        self.time_of_request = request_time
+        self.latest_time_to_pick_up = self.time_of_request + datetime.timedelta(minutes=15)
+        self.actual_pick_up_time = None
+        self.estimated_dropoff_time = None  # Need to calc expected time to dropoff.
+        self.earliest_time_to_dest = None
+
 
     def update_actual_pick_up_time(self, puTime):
         self.actual_pick_up_time = puTime
