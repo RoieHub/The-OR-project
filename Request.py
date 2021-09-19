@@ -24,7 +24,8 @@ class Request:
         self.origin = ori
         self.destination = dest
         self.time_of_request = datetime.datetime.now()
-        self.latest_time_to_pick_up = self.time_of_request + max_waiting_time
+        self.latest_time_to_pick_up = self.time_of_request + Request.max_waiting_time
+
         self.actual_pick_up_time=None
         self.estimated_dropoff_time = None  #Explanation - A value will be given to this when a vehicle wil be first assigned to him. If it is none when assigning a vehicle to him,
                                                             # the time a vehicle that wants to be assigned to it must be at least earliest_time_to_dest.
