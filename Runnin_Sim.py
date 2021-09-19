@@ -4,6 +4,23 @@ import Runnin_Sim
 import Request
 import Sim_init
 import osmnx as ox
+import RV_graph
+import RTV_graph
+
+def running_sim_full_ny(epoch_list, num_of_vehicles):
+    # Generate  vehicles at starting nodes
+    v_start_ids = [42446021,42442463,3099327950,42440022,42430263,42434340]
+    v_list = []
+    for i in range(1,num_of_vehicles):
+        v = Vehicle(v_start_ids[i % len(v_start_ids)])
+        v_list.append(v)
+
+    # Working on each Epoch
+    for epoch in epoch_list:
+        RV =  RV_graph(epoch , v_list)
+        a,b = RV.calcRV()
+
+
 
 
 def run_sim1():

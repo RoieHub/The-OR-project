@@ -28,10 +28,7 @@ class RV_graph :
     def __init__(self,req_lst,vehi_list):
        # Init an empty Graph
        self.graph = nx.Graph()
-
        # Should we first convert the requests and vehicles to nodes? or the graph does it anyway
-
-
        # Add all requests as nodes of type "r"
        self.graph.add_nodes_from(req_lst,type="r")
        self.graph.add_nodes_from(vehi_list, type="v")
