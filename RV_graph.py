@@ -23,6 +23,7 @@ Figure 3 an example of the RV-graph is shown with 90 requests and 30 vehicles
 
 """
 
+
 class RV_graph :
 
     def __init__(self,req_lst,vehi_list):
@@ -32,8 +33,13 @@ class RV_graph :
        # Add all requests as nodes of type "r"
        self.graph.add_nodes_from(req_lst,type="r")
        self.graph.add_nodes_from(vehi_list, type="v")
+       self.rvEdge = None
+       self.rrEdge = None
        # Check every two nodes if they edge can be made
 
+    def make_rv_rr_edges(self):
+        # This mathod need to go over all nodes and create the appropriate rr and rv edges.
+        return True
 
 
 

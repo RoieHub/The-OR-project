@@ -8,7 +8,7 @@ import RV_graph
 import RTV_graph
 
 def running_sim_full_ny(epoch_list, num_of_vehicles):
-    # Generate  vehicles at starting nodes
+    # Generate  vehicles at starting nodes , chosen by Roie , based on Connor's work.
     v_start_ids = [42446021,42442463,3099327950,42440022,42430263,42434340]
     v_list = []
     for i in range(1,num_of_vehicles):
@@ -18,7 +18,7 @@ def running_sim_full_ny(epoch_list, num_of_vehicles):
     # Working on each Epoch
     for epoch in epoch_list:
         RV =  RV_graph(epoch , v_list)
-        a,b = RV.calcRV()
+        RTV = RTV_graph(RV)
 
 
 
