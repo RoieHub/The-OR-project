@@ -118,21 +118,23 @@ def path_builder(p1,p2,p3) :
         return p3,'s1s2d2d1'
 
 #using DFBnB for travel
+#check if there is a route, given the restrictions, where the vehicle gives service to the passengers already on it, and picking up and dropping off all the requests given
+#Returns a tuple with 3 values - True/False (if a route exists), int - the accumulated_delay of the found route, and the found route
+# (a tuple of tuples, each tuple in it consists of 2 objects - the node to drive to, and if it picking it up or dropping them off)
 def travel(v: Vehicle, R: Tuple[Request, ...], sp_dict): #Request should be an array. Need to check how to do that.
 
     first_node = travel_node(_v=v, requests=R, sp_dict=sp_dict)
 
-    threshold = len(first_node.current_possible_destinations) * Request.travel_delay # cost, or delay, caused with the best found route. It's max value can be (the amount of riders on the vehicle + amount of requests) * Request.travel_delay, so that is it's initial value. The initial threshold.
-    best_route = []
+    initial_threshold = len(first_node.current_possible_destinations) * Request.travel_delay # cost, or delay, caused with the best found route. It's max value can be (the amount of riders on the vehicle + amount of requests) * Request.travel_delay, so that is it's initial value. The initial threshold.
 
-    value = expand_tree(first_node, threshold)
+    return expand_tree(current_node = first_node, t = initial_threshold, sp_dict = sp_dict)
 
 
 #For each of the node's children (possible destinations) tries to expand the tree.
 #Checking if already going over the threshold, or lowest extra_time_left on the possible destinations is negative (= fail)
-def expand_tree(current_node: travel_node, t: int):
+def expand_tree(current_node: travel_node, t: int, sp_dict):
     found_an_answer = False
-    threshold = t
+    threshold = copy.copy(t) #shallow copy only needed
     answer_route = []
     empty_answer = (False, -1, ())
     #check if already went over the threshold
@@ -151,7 +153,7 @@ def expand_tree(current_node: travel_node, t: int):
     # try to go there, and expand the tree further.
     for next_destination in current_node.current_possible_destinations:
         new_node = travel_node(_v = current_node.my_vehicle, requests = (), sp_dict=sp_dict, copy_me = current_node, destination_to_remove = next_destination)
-        returned_value = expand_tree(new_node, threshold)
+        returned_value = expand_tree(new_node, threshold, sp_dict)
         if returned_value[0]==True:
             answer_route = returned_value[2]
             threshold = returned_value[1]
@@ -176,9 +178,9 @@ class travel_node:
 
         if copy_me is not None: #case of NOT initial node of the tree
             #save the previous location, copy the delay acumultaed untill now, and the route untill now and append to it the location you went to now
-            self.previous_location = copy_me.current_location
-            self.accumulating_delay = copy_me.accumulating_delay
-            self.route = copy_me.route
+            self.previous_location = copy.copy(copy_me.current_location)
+            self.accumulating_delay = copy.copy(copy_me.accumulating_delay)
+            self.route = copy.copy(copy_me.route) #TODO - I think a shallow copy, like it is now, is OK here, but need to make sure
             self.route.append((destination_to_remove[1], destination_to_remove[2]))
 
             # Check if the drive you just did was to pickup or to drop-off someone.
@@ -205,9 +207,11 @@ class travel_node:
 
             #set this node's vehicle to be the same as that of the node you are copying from
             #copy the current_possible_destinations as well, from the previous node, and remove the destination you just drove to
-            self.my_vehicle = copy_me.my_vehicle
-            self.current_possible_destinations = copy_me.current_possible_destinations
-            self.current_possible_destinations.remove(destination_to_remove)
+
+            # self.my_vehicle = copy_me.my_vehicle #Not using vehicle anywhere, so not copying it
+            self.current_possible_destinations = copy.copy(copy_me.current_possible_destinations) #Don't think a deep copy is needed here. Items in current_possible_destinations are tuples, of time left (int, will be copied without problem, doesn't need deep copy),
+            # , the request (OK to point to. Only thing that can change in it is the estimated_dropoff_time, and that doesn't matter here), and a char that indicates whether this is a pickup or dropoff, and that shouldn't change either.
+            self.current_possible_destinations.remove(destination_to_remove) #TODO - make sure this works, that the relevant tuple is removed from the current_possible_destinations
 
             #update the extra time left for all the tuples in the "current_possible_destinations" object.
             #Calculated like this -
