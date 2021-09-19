@@ -1,8 +1,15 @@
 
 # This class hold Several parameters to init a simulation
 import osmnx as ox
-import datetime
+from datetime import datetime
+from datetime import timedelta
 import pandas as pd
+from roies_util import str_to_time
+import Request
+
+
+
+
 
 class Sim_init:
     #Vehicle stats
@@ -38,16 +45,34 @@ class Sim_init:
 
     """
     CSV file must be sorted by timeStamp
+    :param 
+    example epoch_len = timedelta(seconds=30) 
+    :param map_name
+    :returns A list of lists of requests , where each list is an epoch.
     """
-    def extract_requests_from_csv(self,csv_file_path ,map_name , epoch_len_sec):
+    def extract_requests_from_csv(self,csv_file_path ,map_name , epoch_len):
+        df = pd.read_csv('nyc2015_clean_sim.csv')
+        epoch_list = []
+        epochs = []
+        epoch_start = str_to_time(df['tpep_pickup_datetime'][0])
+        for index, row in df.iterrows():
+            pu_time = str_to_time(row['tpep_pickup_datetime'])
+            if pu_time <= (epoch_start + epoch_len): # Same Epoch
+                # Create Request
+                req = Request(row['src'],row['dst'],pu_time)
+                epochs.append(req)
 
-        # I fucking Hate pandas time stamps, they are shit
-        requestList = []
-        df1 = pd.read_csv('nyc2015_clean_sim.csv')
-        starting_time = df1['tpep_pickup_datetime'][0]
-        epoch = []
-        i = 0
-        #for time in d
-        return requestList
+            else: # Next epoch
+                epoch_start += epoch_len
+                # End this epoch by append it to epoch list.
+                epoch_list.append(epochs)
+                epochs.clear() # clear epoch to collect the next epoch
+                req = Request(row['src'], row['dst'], pu_time)
+                epochs.append(req)
+
+
+        return epoch_list
+
+
 
 
