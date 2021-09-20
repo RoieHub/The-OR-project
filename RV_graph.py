@@ -1,4 +1,6 @@
 import networkx as nx
+import TripAlgo
+
 """
 C. Pairwise graph of vehicles and requests (RV-graph)
 The first step of the method is to compute (a) which requests can be pairwise combined, and (b) which
@@ -24,22 +26,68 @@ Figure 3 an example of the RV-graph is shown with 90 requests and 30 vehicles
 """
 
 
-class RV_graph :
+class RV_graph:
+    # TODO - when initiating  the program, create a virtual vehicle. It will be the premenant virtual vehicle, used all throught the running of the program.
+    # current_time will be passed to this function. It can eoither be actual datetime.datetime.now, or some time given by a simulated run
+    def __init__(self, req_lst: Tuple[Request, ...], vehi_list: Tuple[Vehicle, ...], virtual_vehicle: Vehicle,
+                 current_time: datetime):
+        # Init an empty Graph
+        self.graph = nx.Graph()
+        # Should we first convert the requests and vehicles to nodes? or the graph does it anyway
+        # Add all requests as nodes of type "r"
+        self.graph.add_nodes_from([(v, {'data': v, type="v"}) for v in vehi_list])
+        self.graph.add_nodes_from([(r, {'data': r, type="r"}) for r in req_lst])
+        # self.graph.add_nodes_from(req_lst,type="r")
+        # self.graph.add_nodes_from(vehi_list, type="v")
+        self.rvEdge = None
+        self.rrEdge = None
+        # Check every two nodes if they edge can be made
 
-    def __init__(self,req_lst,vehi_list):
-       # Init an empty Graph
-       self.graph = nx.Graph()
-       # Should we first convert the requests and vehicles to nodes? or the graph does it anyway
-       # Add all requests as nodes of type "r"
-       self.graph.add_nodes_from(req_lst,type="r")
-       self.graph.add_nodes_from(vehi_list, type="v")
-       self.rvEdge = None
-       self.rrEdge = None
-       # Check every two nodes if they edge can be made
+        # Example of how to go to \ address a certain node -
+        #   self.graph.nodes[some_vehicle.id]['data'].curr_pos
 
-    def make_rv_rr_edges(self):
-        # This mathod need to go over all nodes and create the appropriate rr and rv edges.
-        return True
+        # Create R->R edges in the graph
+        # Complying with the article we are based on, this is done by sending each pair if requests to the travel() function.
+        # If it can find a route for both of them, where a virtual empty vehicle starts at the location of one of them, then add an edge
+        #  between them in the graph, weighted with the delay the aforementioned route has.
+        # Otherwise, meaning a route couldn't be found, don't add an edge between them.
+        for i in range(len(req_lst) - 1):
+            for j in range(i + 1, len(req_lst)):
+                # We create a copy of the 2 requests. so as not to change the originals
+                first_req = copy.copy(req_lst[i])
+                second_req = copy.copy(req_lst[j])
+
+                # we update the first req to be picked up
+                first_req.actual_pick_up_time = current_time
+                time_already_waited = current_time - first_req.time_of_request
+                first_req.estimated_dropoff_time = first_req.earliest_time_to_dest + Request.travel_delay - time_already_waited
+
+                # Then we update the virtual vehicle -
+                #  set the virual vechicle to be at the request i, with that request boarded on him
+
+                # virtual_vehicle.curr_time = current_time # TODO - decide if this is needed
+
+                virtual_vehicle.curr_pos = first_req.origin
+                virtual_vehicle.passengers = [first_req]
+
+                returned_value = TripAlgo.travel(v=virtual_vehicle, R=(second_req))
+                if returned_value[0] == True:
+                    self.graph.add_edge(first_req, second_req, weight=returned_value[1])  # TODO - decide if need the weight attribute here, and also if we need the route, which can be added (it is returned_value[2])
+
+
+        # Next, we add an edge between vehicles and requests - to indicate what vehicles could possibly take which requests.
+        # This is done by sending the vehicle and the single request to the travel() function.
+        # If a route can be found, add an edge between that vehicle and the request in the graph, otherwise don't.
+        for i in range(len(vehi_list)):
+            for j in range(len(req_lst)):
+                current_vehicle = vehi_list[i]
+                current_request = copy.copy(req_lst[j])
+                returned_value = TripAlgo.travel(v=current_vehicle, R=(current_request))
+                if returned_value[0] == True:
+                    self.graph.add_edge(vehi_list[i], req_lst[j])
 
 
 
+def make_rv_rr_edges(self):
+    # This mathod need to go over all nodes and create the appropriate rr and rv edges.
+    return True

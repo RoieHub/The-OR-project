@@ -17,3 +17,6 @@ class Trip:
     def add_request(self,req):
         self.requests.append(req)
         return
+
+    def __repr__(self):
+        return ', '.join(self.requests)
