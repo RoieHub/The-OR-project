@@ -18,7 +18,7 @@ class Request:
     earliest_time_to_dest: datetime.datetime  #TimeOfEarliest - the earliest possible time at which the destination could be reached#"""
 
         #Dest and Ori constructor , defaultive 15 mins waiting.#
-    def __init__(self , ori , dest ):
+    def __init__(self , ori , dest, OD_travelTime):
         self.id = Request.class_counter
         Request.class_counter += 1
         self.origin = ori
@@ -30,7 +30,12 @@ class Request:
         self.estimated_dropoff_time = None  #Explanation - A value will be given to this when a vehicle wil be first assigned to him. If it is none when assigning a vehicle to him,
                                                             # the time a vehicle that wants to be assigned to it must be at least earliest_time_to_dest.
                                                             # else, meaning this (estimated_dropoff_time) is not none, it itself is the time to beat - so if a vehicle wants to be assigned to this request, it must be better then it.
-        self.earliest_time_to_dest = self.time_of_request #TODO - add to this the time of shortest path from his origin to his destination.
+        self.earliest_time_to_dest = self.time_of_request + OD_travelTime
+
+        #TODO - decide if we want to add a value for - what vehicle this request is boarded on?
+
+    def __repr__(self):
+        return self.id
 
     def __init__(self, ori, dest,request_time):
         self.id = Request.class_counter

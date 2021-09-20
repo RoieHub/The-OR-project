@@ -7,6 +7,7 @@ import Request
 class Vehicle:
     class_counter = 0
 
+    #TODO - the passengers parameter might be unused in all cases - when are we construting a vehicle and telling it - "you already have these passengers on you"?
     def __init__(self , start_node, passengers=None):
         self.id = Vehicle.class_counter
         Vehicle.class_counter += 1
@@ -14,6 +15,11 @@ class Vehicle:
         self.curr_pos = start_node
         if passengers is None:
             self.passengers = []
+        else:
+            self.passengers = passengers
+
+    def __repr__(self):
+        return self.id
 
     #This method returns the Node ID of the nearest node.
     def get_curr_pos(self):

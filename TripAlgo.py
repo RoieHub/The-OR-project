@@ -125,7 +125,7 @@ def travel(v: Vehicle, R: Tuple[Request, ...], sp_dict): #Request should be an a
 
     first_node = travel_node(_v=v, requests=R, sp_dict=sp_dict)
 
-    initial_threshold = len(first_node.current_possible_destinations) * Request.travel_delay # cost, or delay, caused with the best found route. It's max value can be (the amount of riders on the vehicle + amount of requests) * Request.travel_delay, so that is it's initial value. The initial threshold.
+    initial_threshold = len(first_node.current_possible_destinations) * Request.travel_delay # The threshold for the tree, is the cost, or delay, caused for a found route. It's max value can be (the amount of riders on the vehicle + amount of requests) * Request.travel_delay, so that is it's initial value. The initial threshold.
 
     return expand_tree(current_node = first_node, t = initial_threshold, sp_dict = sp_dict)
 
@@ -158,7 +158,6 @@ def expand_tree(current_node: travel_node, t: int, sp_dict):
             answer_route = returned_value[2]
             threshold = returned_value[1]
             found_an_answer = True
-
     if found_an_answer == False: #this is in case a (maybe better, maybe generally) route was not found
         return empty_answer
     else:
