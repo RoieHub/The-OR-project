@@ -1,16 +1,22 @@
+import copy
+
+import networkx as nx
 import  RV_graph
 import Trip
 import TripAlgo
+import Vehicle
 
-def two_trips_to_unique_tuple(trip1, trip2):
-    return tuple(set(trip1 + trip2))
+
+def two_trips_to_unique_set(trip1, trip2):
+    return set(trip1 + trip2)
 
 
 class RTV_graph :
 
-    def __init__(self,rv_graph):
+    def __init__(self, rv_graph, sp_dict):
         self.graph = nx.Graph()
         self.rv_graph = rv_graph
+        self.sp_dict = sp_dict
 
 
         # We need all nodes from rv_graph.
@@ -27,7 +33,7 @@ class RTV_graph :
 
         # Now for each vehicle
         for v in vehicle_nodes:
-            v_taos = algo1(v)
+            v_taos = self.algo1(v)
             # Now merge all of v_taos entries to main tao.
             # In the returned v_taos, we iterate over every taoK (group of trips of size k), and check if this trip already exists in the graph.
             # If it exists - that means that trip already exists. Just add the relevant edges to it.
@@ -90,7 +96,7 @@ class RTV_graph :
             for r2 in range(r1 + 1, len(requests_connected_to_v)):
                 if (self.rv_graph.has_edge(requests_connected_to_v[r1], requests_connected_to_v[r2])):
                     requests = (copy.copy(requests_connected_to_v[r1]), copy.copy(requests_connected_to_v[r2]))
-                    returned_value = TripAlgo.travel(v, requests, sp_dict)
+                    returned_value = TripAlgo.travel(v, requests, self.sp_dict)
                     if returned_value[0] == True:
                         taoK.append(((r1, r2), returned_value[1]))
         v_taos.append(taoK)
@@ -111,21 +117,22 @@ class RTV_graph :
                 for t2 in range(t1 + 1, len(v_taos[-1])):
                     trip2 = v_taos[-1][t2]
                     # We have the 2 trips we want to check, now we check CHECK 1
-                    new_trip = two_trips_to_unique_tuple(trip1, trip2)
+                    new_trip = two_trips_to_unique_set(trip1, trip2)
                     if len(new_trip) == k:
                         new_trip.sort() #We sort the trip, to make sure that later, when checking if a sub_trip exists within taok-1 (v_taos[-1]), we will not miss because of ordering
+                        new_trip = tuple(new_trip) #make it to a tuple so make sure it isn't changed
                         # CHECK 2
                         condition = True
                         # The above boolean variable is used to check if the condition CHECK 2 is true or not. It will change to false in case it doens't, and we break out of the for loop to not waste time.
                         for r in new_trip:
-                            sub_trip = copy.copy(new_trip)
+                            sub_trip = list(copy.copy(new_trip)) #should be a list so we can remove the relevant request r
                             sub_trip.remove(r)
                             if sub_trip not in v_taos[-1]:
                                 condition = False
                                 break
                         if condition:
                             # CHECK 3
-                            returned_value = TripAlgo.travel(v, new_trip, sp_dict)
+                            returned_value = TripAlgo.travel(v, new_trip, self.sp_dict)
                             if returned_value[0] == True:
                                 taoK.append((new_trip, returned_value[1]))
             v_taos.append(taoK)

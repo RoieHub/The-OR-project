@@ -1,5 +1,12 @@
+import copy
+import datetime
+from typing import Tuple
+
 import networkx as nx
+
+import Request
 import TripAlgo
+import Vehicle
 
 """
 C. Pairwise graph of vehicles and requests (RV-graph)
@@ -29,14 +36,14 @@ Figure 3 an example of the RV-graph is shown with 90 requests and 30 vehicles
 class RV_graph:
     # TODO - when initiating  the program, create a virtual vehicle. It will be the premenant virtual vehicle, used all throught the running of the program.
     # current_time will be passed to this function. It can eoither be actual datetime.datetime.now, or some time given by a simulated run
-    def __init__(self, req_lst: Tuple[Request, ...], vehi_list: Tuple[Vehicle, ...], virtual_vehicle: Vehicle,
+    def __init__(self, req_lst: Tuple[Request.Request, ...], vehi_list: Tuple[Vehicle.Vehicle, ...], virtual_vehicle: Vehicle,
                  current_time: datetime):
         # Init an empty Graph
         self.graph = nx.Graph()
         # Should we first convert the requests and vehicles to nodes? or the graph does it anyway
         # Add all requests as nodes of type "r"
-        self.graph.add_nodes_from([(v, {'data': v, type="v"}) for v in vehi_list])
-        self.graph.add_nodes_from([(r, {'data': r, type="r"}) for r in req_lst])
+        self.graph.add_nodes_from([(v, {'data': v, 'type':'v'}) for v in vehi_list])
+        self.graph.add_nodes_from([(r, {'data': r, 'type':'r'}) for r in req_lst])
         # self.graph.add_nodes_from(req_lst,type="r")
         # self.graph.add_nodes_from(vehi_list, type="v")
         self.rvEdge = None
