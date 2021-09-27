@@ -9,10 +9,15 @@ class Vehicle:
     max_cap = 10
 
     #TODO - the passengers parameter might be unused in all cases - when are we construting a vehicle and telling it - "you already have these passengers on you"?
-    def __init__(self , start_node, passengers=None):
+    def __init__(self , start_node, passengers=None, time=None):
         self.id = Vehicle.class_counter
         Vehicle.class_counter += 1
-        self.curr_time = datetime.datetime.now()
+
+        if time is not None:
+            self.curr_time = time
+        else:
+            self.curr_time = datetime.datetime.now()
+
         self.curr_pos = start_node
         if passengers is None:
             self.passengers = []
@@ -20,7 +25,10 @@ class Vehicle:
             self.passengers = passengers
 
     def __repr__(self):
-        return self.id
+        return str(self.id)
+
+    def __hash__(self):
+        return hash(self.__repr__())
 
     #This method returns the Node ID of the nearest node.
     def get_curr_pos(self):
@@ -39,6 +47,24 @@ class Vehicle:
         if self.passengers is not None :
             self.passengers.remove(passenger)
         return
+
+    def __lt__(self, other):
+        return self.id < other
+
+    def __le__(self, other):
+        return self.id <= other
+
+    def __eq__(self, other):
+        return self.id == other
+
+    def __ne__(self, other):
+        return self.id != other
+
+    def __gt__(self, other):
+        return self.id > other
+
+    def __ge__(self, other):
+        return self.id >= other
 
 
 

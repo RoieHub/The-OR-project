@@ -18,7 +18,7 @@ class Request:
     earliest_time_to_dest: datetime.datetime  #TimeOfEarliest - the earliest possible time at which the destination could be reached#"""
 
         #Dest and Ori constructor , defaultive 15 mins waiting.#
-    def __init__(self , ori , dest, OD_travelTime):
+    def __init__(self , ori: int , dest: int, OD_travelTime: datetime):
         self.id = Request.class_counter
         Request.class_counter += 1
         self.origin = ori
@@ -35,7 +35,10 @@ class Request:
         #TODO - decide if we want to add a value for - what vehicle this request is boarded on?
 
     def __repr__(self):
-        return self.id
+        return str(self.id)
+
+    def __hash__(self):
+        return hash(self.__repr__())
 
     def __init__(self, ori, dest,request_time):
         self.id = Request.class_counter
@@ -48,6 +51,23 @@ class Request:
         self.estimated_dropoff_time = None  # Need to calc expected time to dropoff.
         self.earliest_time_to_dest = None
 
+    def __lt__(self, other):
+        return self.id < other
+
+    def __le__(self, other):
+        return self.id <= other
+
+    def __eq__(self, other):
+        return self.id == other
+
+    def __ne__(self, other):
+        return self.id != other
+
+    def __gt__(self, other):
+        return self.id > other
+
+    def __ge__(self, other):
+        return self.id >= other
 
     def update_actual_pick_up_time(self, puTime):
         self.actual_pick_up_time = puTime
