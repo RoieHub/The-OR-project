@@ -1,9 +1,7 @@
 import copy
 import datetime
 from typing import Tuple
-
 import networkx as nx
-
 import Request
 import TripAlgo
 import Vehicle
