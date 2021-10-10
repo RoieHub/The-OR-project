@@ -14,7 +14,7 @@ class Trip:
         else:
             self.requests = []
 
-        self.v_candidates = [] # List of tuples (Vehicle, cost)
+        self.v_candidates = []
 
 
     def add_request(self,req):

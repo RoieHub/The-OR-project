@@ -2,26 +2,45 @@ import  Request
 import RTV_graph
 import Vehicle
 class Greedy_assingment:
+   """
+   Assuming RTV_graph.tao is a 2dMatrix of type trip
+   """
    def __init__(self,rtv_g : RTV_graph):
       r_ok = {} # Set of assigned requests
       v_ok = {} # Set of vehicles with assigned trips
-      trips = self.
 
-      # get all e(T,v) edges from rtv graph
-      edges = rtv_g.graph.edges(data=True) # HOW to take only edges of type e(T,v) ?
-      sorted_edges = sorted(edges , key=len(edges[0])) #
-      # vehicle_nodes = [x for x,y in rv_graph.nodes(data=True) if y['type'] == 'v']
-      etv_edges =
+      # Creating the stack of e(T,v) edges representation.
+      stack = []
+      tao_len = len(RTV_graph.tao)
 
-      #sort edges by len(T) S k := sort e(T, v) in increasing cost, ∀T ∈ T k , v ∈ V
+      # 1) Extracting all candidate vehicles with cost as they represent e(T,v)
+      vc_tuples = []
+      # For each set of trips of len k, from Tao.
+      for k in range(1,tao_len) :
+         # Extract (V,cost) tuple from each trip.
+         vc_tuples.clear() # clears the container from the prev vc.
+         for t in RTV_graph.tao[k] : # For each trip
+            for vc in t.v_candidates : # Append the candidate (v,cost) to vc_tuples.
+               vc_tuples.append((t.id,)+vc) # This is tuple concatenate so it will look as (t.id,v,cost)
+         # Sort the vc by cost.
+         vc_tuples.sort(key = lambda x: x[2])
+         # Append each vc in reverse into our stack.
+         for vc in reversed(vc_tuples):
+            stack.append(vc)
 
-      k = Vehicle.max_cap
-      for t_size in range(k,1,-1):
-         print("temp")
-        # while S k ! = ∅ do
-        #   pop e(T, v) ← Sk
-        #   if ∀r ∈ T, r ∈/ R ok and v ∈/ V ok then
-        #      R ok ← {∀r ∈ T }; V ok ← v
+
+      # At this point , our stack is filled with (trip.id , v , )
+
+
+
+
+
+
+
+
+
+
+
 
 
 
