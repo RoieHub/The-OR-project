@@ -28,7 +28,7 @@ class RTV_graph :
         # vehicle_nodes = rv_graph.nodes(type="v")
         vehicle_nodes = [x for x,y in rv_graph.nodes(data=True) if y['type'] == 'v']
 
-        tao = [[] for _ in range(Vehicle.max_capacity)]
+        self.tao = [[] for _ in range(Vehicle.max_capacity)]
 
 
         # Now for each vehicle
@@ -50,7 +50,7 @@ class RTV_graph :
                         self.graph.add_edge(trip, v)
                     else:# In case the trip isn't in the graph yet, we need to add it and edges from it's rides to it and from it to the current vehicle, as it can do this trip
 
-                        tao[k].append(v_taos[k][t][0])
+                        self.tao[k].append(v_taos[k][t][0])
 
                         # Add the trip node to the graph.
                         trip_node = Trip.Trip(v_taos[k][t][0])
@@ -61,7 +61,7 @@ class RTV_graph :
                             self.graph.add_edge(r, trip_node)
 
                         # Add the edge between the trip and the vehicle, with the weight of the trip for this vehicle (i.e. the accumulated delay caused to the passengers in it)
-                        self.graph.add_edge(trip_node, v, weight=v_taos[k][t][1])
+                        self.graph.add_edge(trip_node, v, weight=v_taos[k][t][1] , type="tv")
 
 
 

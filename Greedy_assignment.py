@@ -5,6 +5,7 @@ class Greedy_assingment:
    def __init__(self,rtv_g : RTV_graph):
       r_ok = {} # Set of assigned requests
       v_ok = {} # Set of vehicles with assigned trips
+      trips = self.
 
       # get all e(T,v) edges from rtv graph
       edges = rtv_g.graph.edges(data=True) # HOW to take only edges of type e(T,v) ?

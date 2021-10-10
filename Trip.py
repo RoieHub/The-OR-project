@@ -13,10 +13,8 @@ class Trip:
             self.requests = requests
         else:
             self.requests = []
-        # if candidate_v is not None:
-            # self.v_candidates = candidate_v
-        # else:
-            # self.v_candidates = []
+
+        self.v_candidates = [] # List of tuples (Vehicle, cost)
 
 
     def add_request(self,req):
