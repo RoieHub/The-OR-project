@@ -89,7 +89,7 @@ class RV_graph:
                 current_request = copy.copy(req_lst[j])
                 returned_value = TripAlgo.travel(v=current_vehicle, R=(current_request))
                 if returned_value[0] == True:
-                    self.graph.add_edge(vehi_list[i], req_lst[j])
+                    self.graph.add_edge(vehi_list[i], req_lst[j], weight=returned_value[1])
 
 
 
