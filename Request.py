@@ -35,7 +35,7 @@ class Request:
         #TODO - decide if we want to add a value for - what vehicle this request is boarded on?
 
     def __repr__(self):
-        return str(self.id)
+        return 'r' + str(self.id)
 
     def __hash__(self):
         return hash(self.__repr__())
@@ -48,8 +48,8 @@ class Request:
         self.time_of_request = request_time
         self.latest_time_to_pick_up = self.time_of_request + datetime.timedelta(minutes=15)
         self.actual_pick_up_time = None
-        self.estimated_dropoff_time = None  # Need to calc expected time to dropoff.
-        self.earliest_time_to_dest = None
+        self.estimated_dropoff_time = None  # Should be None until assigned to someone. We rely on this in the assignment code!
+        self.earliest_time_to_dest = None #TODO - set this as self.time_of_request + shortest time to get to request's destination
 
     def __lt__(self, other):
         return self.id < other

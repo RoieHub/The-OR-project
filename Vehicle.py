@@ -25,7 +25,7 @@ class Vehicle:
             self.passengers = passengers
 
     def __repr__(self):
-        return str(self.id)
+        return 'v' + str(self.id)
 
     def __hash__(self):
         return hash(self.__repr__())

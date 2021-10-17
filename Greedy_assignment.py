@@ -55,7 +55,7 @@ class Greedy_assingment:
                   self.assigned_tv.add((trip_tuple))
 
    """
-   This method checks if it is valid to assing a certian trip.
+   This method checks if it is valid to assign a certain trip.
    @ trip_tuple: is a tuple containing (trip,v,cost)
    @ returns: False if the v (trip_tuple[1]) allready exist in self.v_ok.
             or if any request in trip.requests(trip_tuple[0].requests) is allready in r_ok.
