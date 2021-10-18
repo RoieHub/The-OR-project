@@ -11,6 +11,7 @@ import RV_graph
 import RTV_graph
 import Epoch
 from csv import reader
+import Vehicle
 
 """
 This functions creates a list of vehicles to be used in the sim.
@@ -19,12 +20,13 @@ Param:
 Return:
 @ v_list : list of new vehicles
 """
-def init_ny_vihecles(num_of_vehicles) :
+def init_ny_vihecles(num_of_vehicles ) :
     # Generate  vehicles at starting nodes , chosen by Roie , based on Connor's work.
     v_start_ids = [42446021, 42442463, 3099327950, 42440022, 42430263, 42434340]
     v_list = []
-    for i in range(1, num_of_vehicles):
-        v = Vehicle(v_start_ids[i % len(v_start_ids)])
+    for i in range(0, num_of_vehicles):
+        v = Vehicle.Vehicle(v_start_ids[i % (len(v_start_ids))])
+        #v = Vehicle.Vehicle(422)
         v_list.append(v)
     return v_list
 
@@ -32,6 +34,14 @@ def init_ny_vihecles(num_of_vehicles) :
 
 """
 This method creates epochs of requests from a csv.
+Param:
+    @request_csv_path : A path to the csv file where request are stored.
+    @epoch_len_sec : Positive integer , represent the length of an epoch in seconds.
+    @num_of_epochs : Positive integer, the num of epochs needed.
+    @starting_time : String , represents the time of the first request of the first epoch , tested format (but not exclusive) 'YYY-MM-DD hh:mm:ss' exmaple of may the first'2013-05-01 00:00:01'
+    
+:returns : List of lists of requests. where list[i] is the list of the ith epoch , where all requests are between [starting time + (epoch_len_sec * i ),starting time + (epoch_len_sec * (i+1) )]
+
 """
 def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs , starting_time = None):
     # Pull the request from csv as dataframe.
@@ -44,13 +54,14 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs , starting
     ending_time = current_time + datetime.timedelta(seconds=(epoch_len_sec*num_of_epochs))
     e_len = datetime.timedelta(seconds=epoch_len_sec)
     for r in list_of_rows:
-        if r[1] == 'dropoff_datetime':
+        if r[1] == 'pickup_datetime':
             continue
         pu_time = str_to_time(r[1])
         if pu_time < current_time: # Not in our Epochs.
             continue
         elif pu_time < (current_time+e_len): # Request is in current epoch
-            epoch.append(Request(r[2],r[3],pu_time))
+            epoch.append(Request.Request(r[2],r[3],pu_time))
+            continue
         elif pu_time >= (current_time+e_len) and (current_time+e_len) <= ending_time: # This belong to a new epoch.
             # Append the epoch to epoch_list
             epochs_list.append(copy.copy(epoch))
@@ -58,12 +69,13 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs , starting
             epoch.clear()
             #Update current time
             current_time += e_len
-            epoch.append(Request(r[2], r[3], pu_time))
+            epoch.append(Request.Request(r[2], r[3], pu_time))
+            continue
         elif pu_time >= ending_time:
             break
         else :
             raise Exception("Sorry, problem with line " + str(r))
-        return epochs_list
+    return epochs_list
 
 
 
@@ -82,7 +94,7 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs , starting
 
 
 def list_of_csv_rows(requests_csv_path):
-    with open(requests_csv_path, 'r') as csv_file:
+        csv_file = open(requests_csv_path, 'r')
         csv_reader = reader(csv_file)
         # Passing the cav_reader object to list() to get a list of lists
         list_of_rows = list(csv_reader)
