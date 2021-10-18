@@ -20,7 +20,7 @@ Param:
 Return:
 @ v_list : list of new vehicles
 """
-def init_ny_vihecles(num_of_vehicles ) :
+def init_ny_vehicles(num_of_vehicles ) :
     # Generate  vehicles at starting nodes , chosen by Roie , based on Connor's work.
     v_start_ids = [42446021, 42442463, 3099327950, 42440022, 42430263, 42434340]
     v_list = []
@@ -90,18 +90,13 @@ def list_of_csv_rows(requests_csv_path):
         return list_of_rows
 
 
-def running_ny_sim( csv_path,num_of_vehicles,num_of_epochs,epoch_len_sec,starting_time = None):
-
-    v_list = init_ny_vihecles(num_of_vehicles)
-    start_from = None
-    if starting_time is not None:
-        start_from=starting_time
-
-    epochs = epoch_separator(csv_path,epoch_len_sec,num_of_epochs,start_from)
+def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, starting_time=None):
+    v_list = init_ny_vehicles(num_of_vehicles)
+    epochs = epoch_separator(csv_path,epoch_len_sec,num_of_epochs,starting_time)
     # Working on each Epoch
     for epoch in epochs:
-        RV = RV_graph(epoch,v_list)
-        RTV = RTV_graph(RV)
+        RV = RV_graph.RV_graph(epoch,v_list)
+        RTV = RTV_graph.RTV_graph(RV)
 
 
 
