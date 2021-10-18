@@ -77,22 +77,10 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs , starting
             raise Exception("Sorry, problem with line " + str(r))
     return epochs_list
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+"""
+This function reads a file of "requests and returnes a list of rows from the csv"
+:param :request_csv_path , the path to the csv file on your system. 
+"""
 def list_of_csv_rows(requests_csv_path):
         csv_file = open(requests_csv_path, 'r')
         csv_reader = reader(csv_file)
@@ -102,37 +90,20 @@ def list_of_csv_rows(requests_csv_path):
         return list_of_rows
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-def running_sim_full_ny(epoch_list, num_of_vehicles):
+def running_ny_sim( csv_path,num_of_vehicles,num_of_epochs,epoch_len_sec,starting_time = None):
 
     v_list = init_ny_vihecles(num_of_vehicles)
+    start_from = None
+    if starting_time is not None:
+        start_from=starting_time
 
+    epochs = epoch_separator(csv_path,epoch_len_sec,num_of_epochs,start_from)
     # Working on each Epoch
-    for epoch in epoch_list:
-        RV =  RV_graph(epoch , v_list)
+    for epoch in epochs:
+        RV = RV_graph(epoch,v_list)
         RTV = RTV_graph(RV)
 
 
 
 
-def run_sim1():
-
-
-    sim1 = Sim_init()
-    map = sim1.map
-
-    pellersHouse = ox.distance.nearest_nodes(map, 32.17939774515874, 34.8552841962678)
-    print(pellersHouse)
-    return
 
