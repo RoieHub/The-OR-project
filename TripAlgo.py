@@ -3,6 +3,8 @@ import datetime
 import operator
 from typing import Tuple
 
+import networkx
+
 import Request
 import networkx as nx
 import datetime as dt
@@ -103,7 +105,7 @@ def valid_trip2_min_cost(r1, r2, map, max_travel_delay):
     # t ∗ r = t rr + τ (o r , d r ).
     if drop_r1 <= r1.r1.time_of_request + dt.timedelta(
             seconds=r1S_to_r1D_pathDuration) + max_travel_delay and drop_r2 <= r1.time_of_request + dt.timedelta(
-            seconds=r2S_to_r2D_pathDuration) + max_travel_delay:
+        seconds=r2S_to_r2D_pathDuration) + max_travel_delay:
         return True, min_path
     else:
         return False, min_path
@@ -127,19 +129,19 @@ def path_builder(p1, p2, p3):
 # check if there is a route, given the restrictions, where the vehicle gives service to the passengers already on it, and picking up and dropping off all the requests given
 # Returns a tuple with 3 values - True/False (if a route exists), int - the accumulated_delay of the found route, and the found route
 # (a tuple of tuples, each tuple in it consists of 2 objects - the node to drive to, and if it picking it up or dropping them off)
-def travel(v: Vehicle, R: Tuple[Request.Request, ...], sp_dict):  # Request should be an array. Need to check how to do that.
 
-    first_node = travel_node(_v=v, requests=R, sp_dict=sp_dict)
+def travel(v: Vehicle, R: Tuple[Request.Request, ...], map_graph, spc_dict):  # Request should be an array. Need to check how to do that.
 
-    initial_threshold = len(
-        first_node.current_possible_destinations) * Request.Request.travel_delay  # The threshold for the tree, is the cost, or delay, caused for a found route. It's max value can be (the amount of riders on the vehicle + amount of requests) * Request.travel_delay, so that is it's initial value. The initial threshold.
+    first_node = travel_node.travel_node(_v=v, requests=R, map_graph=map_graph, spc_dict=spc_dict)
 
-    return expand_tree(current_node=first_node, t=initial_threshold, sp_dict=sp_dict)
+    # The threshold for the tree, is the cost, or delay, caused for a found route. It's max value can be (the amount of riders on the vehicle + amount of requests) * Request.travel_delay, so that is it's initial value. The initial threshold.
+    initial_threshold = len(first_node.current_possible_destinations) * Request.Request.travel_delay
+    return expand_tree(current_node=first_node, t=initial_threshold, map_graph=map_graph, spc_dict=spc_dict)
 
 
 # For each of the node's children (possible destinations) tries to expand the tree.
 # Checking if already going over the threshold, or lowest extra_time_left on the possible destinations is negative (= fail)
-def expand_tree(current_node: travel_node, t: int, sp_dict):
+def expand_tree(current_node: travel_node, t: int, map_graph: networkx.Graph, spc_dict):
     found_an_answer = False
     threshold = copy.copy(t)  # shallow copy only needed
     answer_route = []
@@ -159,9 +161,8 @@ def expand_tree(current_node: travel_node, t: int, sp_dict):
     # for each of the possible children of the node (i.e. going to one of the current_possible_destinations)
     # try to go there, and expand the tree further.
     for next_destination in current_node.current_possible_destinations:
-        new_node = travel_node(_v=current_node.my_vehicle, requests=(), sp_dict=sp_dict, copy_me=current_node,
-                               destination_to_remove=next_destination)
-        returned_value = expand_tree(new_node, threshold, sp_dict)
+        new_node = travel_node.travel_node(_v=current_node.my_vehicle, requests=(), map_graph=map_graph, spc_dict=spc_dict, copy_me=current_node, destination_to_remove=next_destination)
+        returned_value = expand_tree(current_node=new_node, t=threshold, map_graph=map_graph, spc_dict=spc_dict)
         if returned_value[0] == True:
             answer_route = returned_value[2]
             threshold = returned_value[1]
@@ -170,4 +171,3 @@ def expand_tree(current_node: travel_node, t: int, sp_dict):
         return empty_answer
     else:
         return True, threshold, answer_route
-

@@ -13,10 +13,11 @@ def two_trips_to_unique_set(trip1, trip2):
 
 class RTV_graph:
 
-    def __init__(self, rv_graph, sp_dict):
+    def __init__(self, rv_graph, spc_dict):
+        self.map_graph = rv_graph.map_graph
         self.graph = nx.Graph()
         self.rv_graph = rv_graph
-        self.sp_dict = sp_dict
+        self.spc_dict = spc_dict
 
         # We need all nodes from rv_graph.
         # data=True means that we will get a tuple for each node in the rv_graph.nodes.
@@ -122,7 +123,7 @@ class RTV_graph:
             for r2 in range(r1 + 1, len(requests_connected_to_v)):
                 if self.rv_graph.has_edge(requests_connected_to_v[r1], requests_connected_to_v[r2]):
                     requests = (requests_connected_to_v[r1], requests_connected_to_v[r2])
-                    returned_value = TripAlgo.travel(v, requests, self.sp_dict)
+                    returned_value = TripAlgo.travel(v, requests, self.map_graph, self.spc_dict)
                     if returned_value[0] == True:
                         taoK.append((Trip.Trip(r1, r2), returned_value[1]))
         v_taos.append(copy.copy(taoK))
@@ -159,7 +160,7 @@ class RTV_graph:
                                 break
                         if condition:
                             # CHECK 3
-                            returned_value = TripAlgo.travel(v, new_trip_requests, self.sp_dict)
+                            returned_value = TripAlgo.travel(v, new_trip_requests, self.map_graph, self.spc_dict)
                             if returned_value[0] == True:
                                 taoK.append((Trip.Trip(new_trip_requests), returned_value[1]))
             v_taos.append(copy.copy(taoK))

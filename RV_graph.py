@@ -34,14 +34,14 @@ Figure 3 an example of the RV-graph is shown with 90 requests and 30 vehicles
 class RV_graph:
     # TODO - when initiating  the program, create a virtual vehicle. It will be the premenant virtual vehicle, used all throught the running of the program.
     # current_time will be passed to this function. It can eoither be actual datetime.datetime.now, or some time given by a simulated run
-    def __init__(self, req_lst: Tuple[Request.Request, ...], vehi_list: Tuple[Vehicle.Vehicle, ...], virtual_vehicle: Vehicle,
-                 current_time: datetime):
+    def __init__(self, requests_list: Tuple[Request.Request, ...], vehicle_list: Tuple[Vehicle.Vehicle, ...], virtual_vehicle: Vehicle, map_graph: nx.Graph, current_time: datetime):
+        self.map_graph = map_graph
         # Init an empty Graph
         self.graph = nx.Graph()
         # Should we first convert the requests and vehicles to nodes? or the graph does it anyway
         # Add all requests as nodes of type "r"
-        self.graph.add_nodes_from([(v, {'data': v, 'type':'v'}) for v in vehi_list])
-        self.graph.add_nodes_from([(r, {'data': r, 'type':'r'}) for r in req_lst])
+        self.graph.add_nodes_from([(v, {'data': v, 'type':'v'}) for v in vehicle_list])
+        self.graph.add_nodes_from([(r, {'data': r, 'type':'r'}) for r in requests_list])
         # self.graph.add_nodes_from(req_lst,type="r")
         # self.graph.add_nodes_from(vehi_list, type="v")
         self.rvEdge = None
@@ -56,11 +56,11 @@ class RV_graph:
         # If it can find a route for both of them, where a virtual empty vehicle starts at the location of one of them, then add an edge
         #  between them in the graph, weighted with the delay the aforementioned route has.
         # Otherwise, meaning a route couldn't be found, don't add an edge between them.
-        for i in range(len(req_lst) - 1):
-            for j in range(i + 1, len(req_lst)):
+        for i in range(len(requests_list) - 1):
+            for j in range(i + 1, len(requests_list)):
                 # We create a copy of the 2 requests. so as not to change the originals
-                first_req = copy.copy(req_lst[i])
-                second_req = copy.copy(req_lst[j])
+                first_req = copy.copy(requests_list[i])
+                second_req = copy.copy(requests_list[j])
 
                 # we update the first req to be picked up
                 first_req.actual_pick_up_time = current_time
@@ -75,7 +75,7 @@ class RV_graph:
                 virtual_vehicle.curr_pos = first_req.origin
                 virtual_vehicle.passengers = [first_req]
 
-                returned_value = TripAlgo.travel(v=virtual_vehicle, R=(second_req))
+                returned_value = TripAlgo.travel(v=virtual_vehicle, R=(second_req), map_graph=self.map_graph, spc_dict=self.spc_dict)
                 if returned_value[0] == True:
                     self.graph.add_edge(first_req, second_req, weight=returned_value[1])  # TODO - decide if need the weight attribute here, and also if we need the route, which can be added (it is returned_value[2])
 
@@ -83,13 +83,14 @@ class RV_graph:
         # Next, we add an edge between vehicles and requests - to indicate what vehicles could possibly take which requests.
         # This is done by sending the vehicle and the single request to the travel() function.
         # If a route can be found, add an edge between that vehicle and the request in the graph, otherwise don't.
-        for i in range(len(vehi_list)):
-            for j in range(len(req_lst)):
-                current_vehicle = vehi_list[i]
-                current_request = copy.copy(req_lst[j])
-                returned_value = TripAlgo.travel(v=current_vehicle, R=(current_request))
+        for i in range(len(vehicle_list)):
+            for j in range(len(requests_list)):
+                current_vehicle = vehicle_list[i]
+                current_request = copy.copy(requests_list[j])
+
+                returned_value = TripAlgo.travel(v=virtual_vehicle, R=(current_request), map_graph=self.map_graph, spc_dict=self.spc_dict)
                 if returned_value[0] == True:
-                    self.graph.add_edge(vehi_list[i], req_lst[j], weight=returned_value[1])
+                    self.graph.add_edge(vehicle_list[i], requests_list[j], weight=returned_value[1])
 
 
 
