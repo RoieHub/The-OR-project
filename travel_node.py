@@ -16,8 +16,8 @@ class travel_node:
     """Nodes in the DFBnB tree, for the travel function"""
     #parent = null
 
-    def __init__(self, _v: Vehicle, requests: Tuple[Request, ...], map_graph: networkx.Graph, spc_dict, copy_me: travel_node=None,
-                 destination_to_remove: Tuple[int, Request, str]=None):
+    def __init__(self, _v: Vehicle, requests: Tuple[Request, ...],map_graph: networkx.Graph, spc_dict, copy_me: travel_node=None,
+                 destination_to_remove: Tuple[int, Request, str]=None, current_time=None):
         #destination_to_remove is a tuple of 1. The request that we now drove to, 2.A char with the value 'p' or 'd', to know if it is pickup or dropoff
 
         if copy_me is not None: #case of NOT initial node of the tree

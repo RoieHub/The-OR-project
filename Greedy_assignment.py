@@ -39,20 +39,22 @@ class Greedy_assingment:
          for t in rtv_g.tao[k] : # For each trip
             for vc in t.v_candidates : # Append the candidate (v,cost) to vc_tuples.
                vc_tuples.append((t,)+vc) # This is tuple concatenate so it will look as (t.id,v,cost)
-            # Sort the vc by cost.
-            vc_tuples.sort(key = lambda x: x[2])
-            # Append each vc in reverse into our stack.
-            for vc in reversed(vc_tuples):
-               stack.append(vc)
-            # At this point , our stack is filled with (trip , v , cost ) of size k
-            while len(stack) > 0:
-               trip_tuple = stack.pop()
-               if self.unassinged_trip(trip_tuple) :
-                  for r in trip_tuple[0].requests :
-                     self.r_ok.add(r)
-                  self.v_ok.add(trip_tuple[1])
-                  self.greedy_sum += trip_tuple[2]
-                  self.assigned_tv.add((trip_tuple))
+
+         # Sort the vc by cost.
+         vc_tuples.sort(key = lambda x: x[2])
+         # Append each vc in reverse into our stack.
+         for vc in reversed(vc_tuples):
+            stack.append(vc)
+
+         # At this point , our stack is filled with (trip , v , cost ) of size k
+         while len(stack) > 0:
+            trip_tuple = stack.pop()
+            if self.unassinged_trip(trip_tuple):
+               for r in trip_tuple[0].requests:
+                  self.r_ok.add(r)
+               self.v_ok.add(trip_tuple[1])
+               self.greedy_sum += trip_tuple[2]
+               self.assigned_tv.add((trip_tuple))
 
    """
    This method checks if it is valid to assign a certain trip.
