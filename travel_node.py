@@ -5,15 +5,18 @@ import datetime
 import operator
 from typing import Tuple
 
+import networkx
+
 import Request
 import Vehicle
+import spc_dict_caregiver
 
 
 class travel_node:
     """Nodes in the DFBnB tree, for the travel function"""
     #parent = null
 
-    def __init__(self, _v: Vehicle, requests: Tuple[Request, ...], sp_dict, copy_me: travel_node=None,
+    def __init__(self, _v: Vehicle, requests: Tuple[Request, ...], map_graph: networkx.Graph, spc_dict, copy_me: travel_node=None,
                  destination_to_remove: Tuple[int, Request, str]=None):
         #destination_to_remove is a tuple of 1. The request that we now drove to, 2.A char with the value 'p' or 'd', to know if it is pickup or dropoff
 
@@ -32,13 +35,16 @@ class travel_node:
 
             # On the other hand ("else"), meaning this was a drop-off, we add the delay caused to this person to the "self.accumulating_delay" value.
 
+            # We call the spc_dict_caregiver to make sure the shortest paths from the last node are already in the spc_dict. (If it is, it continues, otherwise it calcs and adds it).
+            spc_dict_caregiver.spc_dict_caregiver(spc_dict=spc_dict, map_graph=map_graph, source_node=copy_me.current_location)
             if destination_to_remove[2] == 'p':
-                added_time = datetime.timedelta(seconds=sp_dict[copy_me.current_location][destination_to_remove[1].origin])
+
+                added_time = datetime.timedelta(seconds=spc_dict[copy_me.current_location][1][destination_to_remove[1].origin])
                 self.current_location = destination_to_remove[1].origin
                 self.time = copy_me.time + added_time
 
             else:
-                added_time = sp_dict[copy_me.current_location][destination_to_remove[1].destination]
+                added_time = spc_dict[copy_me.current_location][1][destination_to_remove[1].destination]
                 self.time = copy_me.time + added_time
                 self.current_location = destination_to_remove[1].destination
 
@@ -66,15 +72,15 @@ class travel_node:
             # After that, re-sort
             for c in self.current_possible_destinations:
                 if c[2] =='p':
-                    c[0] = c[0] + sp_dict[self.previous_location][c[1].origin] - added_time - sp_dict[self.current_location][c[1].origin]
+                    c[0] = c[0] + spc_dict[self.previous_location][c[1].origin] - added_time - spc_dict[self.current_location][c[1].origin]
                 else:
-                    c[0] = c[0] + sp_dict[self.previous_location][c[1].destination] - added_time - sp_dict[self.current_location][c[1].destination]
-                # c[0] = c[1]. self.time + sp_dict
+                    c[0] = c[0] + spc_dict[self.previous_location][c[1].destination] - added_time - spc_dict[self.current_location][c[1].destination]
+                # c[0] = c[1]. self.time + spc_dict
 
             if destination_to_remove[2] == 'p':  # if the vehicle drove to a request, a pickup, add the drop-off to the current_possible_destinations
                 #calculte the extra_time_left_to_drop-off, by taking the request's estimated_dropoff_time, subtract the "current" time (self.time, the time this vehicle would reach this current location) and subtract the time to drive
                 # from current_location to the destination of the ndoe we picked up
-                extra_time_left_to_dropoff = destination_to_remove[1].estimated_dropoff_time - self.time - sp_dict[self.current_location][destination_to_remove[0].destination]
+                extra_time_left_to_dropoff = destination_to_remove[1].estimated_dropoff_time - self.time - spc_dict[self.current_location][destination_to_remove[0].destination]
 
                 # heappush(self.current_possible_destinations, (extra_time_left_to_dropoff, destination_to_remove[0], 'd'))  #the 'd' is to say this is a drop-off
                 self.current_possible_destinations.append((extra_time_left_to_dropoff, destination_to_remove[1], 'd'))
