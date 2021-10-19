@@ -65,7 +65,7 @@ class RV_graph:
                 # we update the first req to be picked up
                 first_req.actual_pick_up_time = current_time
                 time_already_waited = current_time - first_req.time_of_request
-                first_req.estimated_dropoff_time = first_req.earliest_time_to_dest + Request.travel_delay - time_already_waited # TODO - Is this needed or valid?
+                first_req.estimated_dropoff_time = first_req.earliest_time_to_dest + Request.Request.travel_delay - time_already_waited # TODO - Is this needed or valid?
 
                 # Then we update the virtual vehicle -
                 #  set the virual vechicle to be at the request i, with that request boarded on him

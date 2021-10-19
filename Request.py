@@ -1,6 +1,8 @@
 # import itertools
 import datetime
 
+import spc_dict_caregiver
+
 
 class Request:
     class_counter = 0
@@ -25,7 +27,7 @@ class Request:
     def __hash__(self):
         return hash(self.__repr__())
 
-    def __init__(self, ori, dest,request_time):
+    def __init__(self, ori, dest, request_time, spc_dict, map_graph):
         self.id = Request.class_counter
         Request.class_counter += 1
         self.origin = ori
@@ -34,8 +36,10 @@ class Request:
         self.latest_time_to_pick_up = self.time_of_request + datetime.timedelta(minutes=15)
         self.actual_pick_up_time = None
         self.estimated_dropoff_time = None  # Should be None until assigned to someone. We rely on this in the assignment code!
-        self.earliest_time_to_dest = None #TODO - set this as self.time_of_request + shortest time to get to request's destination
+        #self.earliest_time_to_dest = None #TODO - set this as self.time_of_request + shortest time to get to request's destination
 
+        spc_dict_caregiver.spc_dict_caregiver(spc_dict,map_graph,ori)
+        self.earliest_time_to_dest = request_time + datetime.timedelta(seconds=(spc_dict[ori][1][dest]))
     def __lt__(self, other):
         return self.id < other
 

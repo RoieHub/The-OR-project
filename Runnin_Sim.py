@@ -49,14 +49,14 @@ Param:
 :returns : List of lists of requests. where list[i] is the list of the ith epoch , where all requests are between [starting time + (epoch_len_sec * i ),starting time + (epoch_len_sec * (i+1) )]
 
 """
-def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs , starting_time = None):
+def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict , map_graph, starting_time = None ):
     # Pull the request from csv as dataframe.
     list_of_rows = list_of_csv_rows(requests_csv_path)
     epochs_list = []
     epoch = []
     current_time = str_to_time(list_of_rows[1][1])
     if starting_time is not None:
-        current_time = starting_time
+        current_time = str_to_time(starting_time)
     ending_time = current_time + datetime.timedelta(seconds=(epoch_len_sec*num_of_epochs))
     e_len = datetime.timedelta(seconds=epoch_len_sec)
     for r in list_of_rows:
@@ -66,7 +66,7 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs , starting
         if pu_time < current_time: # Not in our Epochs.
             continue
         elif pu_time < (current_time+e_len): # Request is in current epoch
-            epoch.append(Request.Request(r[2],r[3],pu_time))
+            epoch.append(Request.Request(int(r[2]),int(r[3]),pu_time,spc_dict=spc_dict,map_graph=map_graph))
             continue
         elif pu_time >= (current_time+e_len) and (current_time+e_len) <= ending_time: # This belong to a new epoch.
             # Append the epoch to epoch_list
@@ -101,7 +101,7 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
     virtual_v = Vehicle.Vehicle(0)
 
     v_list = init_ny_vehicles(num_of_vehicles)
-    epochs = epoch_separator(csv_path,epoch_len_sec,num_of_epochs,starting_time)
+
 
     # Creating Shortest paths costs dictionary to hold those val's.
     #global spc_dict
@@ -109,13 +109,16 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
 
     # Creating our map_graph.
     map_graph = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
+    #G = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
     map_graph = ox.add_edge_speeds(map_graph)
     map_graph = ox.add_edge_travel_times(map_graph)
     # Create logger.
     logging.basicConfig(filename='app.log',level=logging.INFO)
     # Example :logging.info('This will get logged to a file')
 
-    curr_time = starting_time
+    epochs = epoch_separator(requests_csv_path=csv_path, epoch_len_sec=epoch_len_sec, num_of_epochs=num_of_epochs, starting_time=starting_time,spc_dict=spc_dict, map_graph=map_graph )
+
+    curr_time = str_to_time(starting_time)
     added_time = datetime.timedelta(seconds=epoch_len_sec)
     # Working on each Epoch
     for epoch in epochs:
@@ -124,6 +127,13 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
         rtv = RTV_graph.RTV_graph(rv_graph=rv , spc_dict=spc_dict,map_graph=map_graph) # TODO Check if current time needed as well
         greedy = Greedy_assignment.Greedy_assingment(rtv)
         print('It is alive!')
+
+if __name__ == '__main__':
+    print('this is main, now lets see...')
+    running_ny_sim('clean_2013.csv',10, 2, 30, starting_time='2013-05-05 00:00:00')
+
+
+
 
 
 
