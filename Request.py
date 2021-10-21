@@ -39,7 +39,10 @@ class Request:
         #self.earliest_time_to_dest = None #TODO - set this as self.time_of_request + shortest time to get to request's destination
 
         spc_dict_caregiver.spc_dict_caregiver(spc_dict,map_graph,ori)
-        self.earliest_time_to_dest = request_time + datetime.timedelta(seconds=(spc_dict[ori][1][dest]))
+        try:
+            self.earliest_time_to_dest = request_time + datetime.timedelta(seconds=(spc_dict[ori][1][dest]))
+        except:
+            print("failed to set self.earliest_time_to_dest! origin = " + str(ori) + ", dest = " + str(dest) +".")
     def __lt__(self, other):
         return self.id < other
 

@@ -25,7 +25,7 @@ Return:
 """
 def init_ny_vehicles(num_of_vehicles ):
     # Open a log for the run.
-    logging.basicConfig(level=logging.INFO,filename='or_'+str(datetime.datetime.now())+'.log')
+    logging.basicConfig(level=logging.INFO,filename='or_'+str(datetime.datetime.now()).replace(':', '_')+'.log')
     # Basic useage example :  logging.INFO('This will be logged)
     # Generate  vehicles at starting nodes , chosen by Roie , based on Connor's work.
     v_start_ids = [42446021, 42442463, 3099327950, 42440022, 42430263, 42434340]
@@ -66,7 +66,7 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
         if pu_time < current_time: # Not in our Epochs.
             continue
         elif pu_time < (current_time+e_len): # Request is in current epoch
-            epoch.append(Request.Request(int(r[2]),int(r[3]),pu_time,spc_dict=spc_dict,map_graph=map_graph))
+            epoch.append(Request.Request(int(r[2]), int(r[3]), pu_time, spc_dict=spc_dict, map_graph=map_graph))
             continue
         elif pu_time >= (current_time+e_len) and (current_time+e_len) <= ending_time: # This belong to a new epoch.
             # Append the epoch to epoch_list
@@ -75,7 +75,7 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
             epoch.clear()
             #Update current time
             current_time += e_len
-            epoch.append(Request.Request(r[2], r[3], pu_time))
+            epoch.append(Request.Request(int(r[2]), int(r[3]), pu_time, spc_dict=spc_dict, map_graph=map_graph))
             continue
         elif pu_time >= ending_time:
             break
@@ -123,8 +123,8 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
     # Working on each Epoch
     for epoch in epochs:
         curr_time += added_time
-        rv = RV_graph.RV_graph(requests_list=epoch,vehicle_list=v_list,virtual_vehicle=virtual_v,map_graph=map_graph,current_time=curr_time , spc_dict=spc_dict)
-        rtv = RTV_graph.RTV_graph(rv_graph=rv , spc_dict=spc_dict,map_graph=map_graph) # TODO Check if current time needed as well
+        rv = RV_graph.RV_graph(requests_list=epoch, vehicle_list=v_list, virtual_vehicle=virtual_v, map_graph=map_graph, current_time=curr_time, spc_dict=spc_dict)
+        rtv = RTV_graph.RTV_graph(rv_graph=rv, spc_dict=spc_dict, map_graph=map_graph, current_time=curr_time) # TODO Check if current time needed as well
         greedy = Greedy_assignment.Greedy_assingment(rtv)
         print('It is alive!')
 

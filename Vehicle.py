@@ -6,7 +6,7 @@ import Request
 """
 class Vehicle:
     class_counter = 0
-    max_cap = 10
+    max_capacity = 10
 
     #TODO - the passengers parameter might be unused in all cases - when are we construting a vehicle and telling it - "you already have these passengers on you"?
     def __init__(self , start_node, passengers=None, time=None):

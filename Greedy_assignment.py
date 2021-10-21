@@ -33,7 +33,7 @@ class Greedy_assingment:
       # 1) Extracting all candidate vehicles with cost as they represent e(T,v)
       vc_tuples = []
       # For each set of trips of len k, from Tao in decensding order.
-      for k in range(tao_len,1,-1) :
+      for k in range(tao_len-1,-1,-1) :
          # Extract (V,cost) tuple from each trip.
          vc_tuples.clear() # clears the container from the prev vc.
          for t in rtv_g.tao[k] : # For each trip

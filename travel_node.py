@@ -17,7 +17,7 @@ class travel_node:
     #parent = null
 
     def __init__(self, _v: Vehicle, requests: Tuple[Request, ...],map_graph: networkx.Graph, spc_dict, copy_me: travel_node=None,
-                 destination_to_remove: Tuple[int, Request, str]=None, current_time=None):
+                 destination_to_remove: Tuple[int, Request, str]=None, current_time=None): #TODO - should current_time be able to recive None?
         #destination_to_remove is a tuple of 1. The request that we now drove to, 2.A char with the value 'p' or 'd', to know if it is pickup or dropoff
 
         if copy_me is not None: #case of NOT initial node of the tree
@@ -44,7 +44,7 @@ class travel_node:
                 self.time = copy_me.time + added_time
 
             else:
-                added_time = spc_dict[copy_me.current_location][1][destination_to_remove[1].destination]
+                added_time = datetime.timedelta(seconds=spc_dict[copy_me.current_location][1][destination_to_remove[1].destination])
                 self.time = copy_me.time + added_time
                 self.current_location = destination_to_remove[1].destination
 
@@ -72,18 +72,18 @@ class travel_node:
             # After that, re-sort
             for c in self.current_possible_destinations:
                 if c[2] =='p':
-                    c[0] = c[0] + spc_dict[self.previous_location][c[1].origin] - added_time - spc_dict[self.current_location][c[1].origin]
+                    c[0] = c[0] + datetime.timedelta(seconds=spc_dict[self.previous_location][1][c[1].origin]) - added_time - datetime.timedelta(seconds=spc_dict[self.current_location][1][c[1].origin])
                 else:
-                    c[0] = c[0] + spc_dict[self.previous_location][c[1].destination] - added_time - spc_dict[self.current_location][c[1].destination]
+                    c[0] = c[0] + datetime.timedelta(seconds=spc_dict[self.previous_location][1][c[1].destination]) - added_time - datetime.timedelta(seconds=spc_dict[self.current_location][1][c[1].destination])
                 # c[0] = c[1]. self.time + spc_dict
 
             if destination_to_remove[2] == 'p':  # if the vehicle drove to a request, a pickup, add the drop-off to the current_possible_destinations
                 #calculte the extra_time_left_to_drop-off, by taking the request's estimated_dropoff_time, subtract the "current" time (self.time, the time this vehicle would reach this current location) and subtract the time to drive
                 # from current_location to the destination of the ndoe we picked up
-                extra_time_left_to_dropoff = destination_to_remove[1].estimated_dropoff_time - self.time - spc_dict[self.current_location][destination_to_remove[0].destination]
+                extra_time_left_to_dropoff = destination_to_remove[1].estimated_dropoff_time - self.time - datetime.timedelta(seconds=spc_dict[self.current_location][1][destination_to_remove[0].destination])
 
                 # heappush(self.current_possible_destinations, (extra_time_left_to_dropoff, destination_to_remove[0], 'd'))  #the 'd' is to say this is a drop-off
-                self.current_possible_destinations.append((extra_time_left_to_dropoff, destination_to_remove[1], 'd'))
+                self.current_possible_destinations.append([extra_time_left_to_dropoff, destination_to_remove[1], 'd'])
 
             # heapify(self.current_possible_destinations)
             self.current_possible_destinations.sort(key=operator.itemgetter(0))
@@ -94,7 +94,12 @@ class travel_node:
 
         else: # copy_me==None:
             self.previous_location = None
-            self.time = datetime().datetime.now()
+            #if you get a current_time value, we are running in a simulation (MATRIXXX), so copy that as your time.
+            # Otherwise this is a real-time run, take the current time.
+            if current_time is not None:
+                self.time = current_time
+            else:
+                self.time = datetime.datetime.now()
             self.current_location = _v.curr_pos
             self.my_vehicle = _v
             self.current_possible_destinations = []
@@ -121,12 +126,12 @@ class travel_node:
                 else: #in this case, a vehicle was already assigned
                     extra_time_left_to_pickup = r.estimated_dropoff_time - self.time #TODO minus time to get from vehicle's current location to request origin
                 # heappush(self.current_possible_destinations, (extra_time_left_to_pickup, r, 'p')) #the 'p' is to say this is a pickup
-                self.current_possible_destinations.append((extra_time_left_to_pickup, r, 'p')) #the 'p' is to say this is a pickup
+                self.current_possible_destinations.append([extra_time_left_to_pickup, r, 'p']) #the 'p' is to say this is a pickup
 
             #add all the passangers currently on the vehicle as possible destinations, but this time calculate time left to start going their destinations (as they were already picked-up)
             for vr in _v.passengers:
                 extra_time_left_to_dropoff = vr.estimated_dropoff_time - self.time #TODO minus time to get from vehicle's current location to passenger destination
                 # heappush(self.current_possible_destinations, (extra_time_left_to_dropoff, vr, 'd')) #the 'd' is to say this is a drop-off
-                self.current_possible_destinations.append((extra_time_left_to_dropoff, vr, 'd')) #the 'd' is to say this is a drop-off
+                self.current_possible_destinations.append([extra_time_left_to_dropoff, vr, 'd']) #the 'd' is to say this is a drop-off
 
             self.current_possible_destinations.sort(key=operator.itemgetter(0))

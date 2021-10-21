@@ -1,4 +1,5 @@
 import copy
+import datetime
 
 import networkx as nx
 import RV_graph
@@ -13,7 +14,7 @@ def two_trips_to_unique_set(trip1, trip2):
 
 class RTV_graph:
 
-    def __init__(self, rv_graph,map_graph ,spc_dict):
+    def __init__(self, rv_graph: RV_graph, map_graph: nx.Graph, spc_dict, current_time: datetime):
         #self.map_graph = rv_graph.map_graph
         self.graph = nx.Graph()
         #self.rv_graph = rv_graph
@@ -23,16 +24,16 @@ class RTV_graph:
         # data=True means that we will get a tuple for each node in the rv_graph.nodes.
         # Using the add_nodes_from on that will also copy the attributes of the nodes, such as type=v\r, which we need.
         # We also tested to make sure, and copying nodes from another graph, like below, doesn't copy the edges between them as well
-        self.graph.add_nodes_from(rv_graph.nodes(data=True))
+        self.graph.add_nodes_from(rv_graph.graph.nodes(data=True))
 
         # vehicle_nodes = rv_graph.nodes(type="v")
-        vehicle_nodes = [x for x, y in rv_graph.nodes(data=True) if y['type'] == 'v']
+        vehicle_nodes = [x for x, y in rv_graph.graph.nodes(data=True) if y['type'] == 'v']
 
-        self.tao = [[] for _ in range(Vehicle.max_capacity)]
+        self.tao = [[] for _ in range(Vehicle.Vehicle.max_capacity)]
 
         # Now for each vehicle
         for v in vehicle_nodes:
-            v_taos = self.algo1(v,spc_dict=spc_dict,map_graph=map_graph,rv_graph=rv_graph)
+            v_taos = self.algo1(v,spc_dict=spc_dict, map_graph=map_graph, rv_graph=rv_graph, current_time=current_time)
             # Now merge all of v_taos entries to main tao.
 
             # There is a problem.
@@ -90,10 +91,10 @@ class RTV_graph:
                         # Add the edge between the trip and the vehicle, with the weight of the trip for this vehicle (i.e. the accumulated delay caused to the passengers in it)
                         self.graph.add_edge(new_trip, v, weight=(v_taos[k][t][1] - delay_of_passengers_of_v), type="tv")
 
-    def algo1(self, v, spc_dict , map_graph , rv_graph):
+    def algo1(self, v, spc_dict, map_graph, rv_graph, current_time: datetime):
         # algo1()
 
-        requests_connected_to_v = [x[1] for x in rv_graph.edges() if x[0] == v]
+        requests_connected_to_v = [x[1] for x in rv_graph.graph.edges() if x[0] == v]
         v_taos = []
         # All the taos, the groups of trips the current vehicle can make. The groups in it are groups of trips of the same size.
         # Will be later added, or merged, to the tao of the whole RTV_graph
@@ -107,7 +108,7 @@ class RTV_graph:
 
             # The following line gets the weight of the edge from the graph - from all the edges, take the one between v and r, take the weight in it.
             # This will have to be put in to a list, so we take the first and only value in there, the weight we wanted.
-            weight = [z['weight'] for x, y, z in rv_graph.edges(data=True) if (x == v) & (y == r)][0]
+            weight = [z['weight'] for x, y, z in rv_graph.graph.edges(data=True) if (x == v) & (y == r)][0]
             taoK.append((Trip.Trip(requests=(r)), weight))
 
         # After we are finished adding all the trips to taoK, we append them to v_taos
@@ -123,7 +124,7 @@ class RTV_graph:
             for r2 in range(r1 + 1, len(requests_connected_to_v)):
                 if rv_graph.has_edge(requests_connected_to_v[r1], requests_connected_to_v[r2]):
                     requests = (requests_connected_to_v[r1], requests_connected_to_v[r2])
-                    returned_value = TripAlgo.travel(v, requests, map_graph, spc_dict)
+                    returned_value = TripAlgo.travel(v, requests, map_graph, spc_dict, current_time=current_time)
                     if returned_value[0] == True:
                         taoK.append((Trip.Trip(r1, r2), returned_value[1]))
         v_taos.append(copy.copy(taoK))
@@ -138,7 +139,7 @@ class RTV_graph:
         # Then, if that condition is true, check (CHECK 3) that this vehicle and the requests of the original union (that of the 2 trips), returns a valid answer form the function travel()
         # If so, add the the trip (made by the mentioned union) to taoK.
 
-        for k in range(3, Vehicle.max_capacity - len(v.passengers) + 1):
+        for k in range(3, Vehicle.Vehicle.max_capacity - len(v.passengers) + 1):
             for t1 in range(len(v_taos[-1]) - 1):
                 trip1 = v_taos[-1][t1][0]
                 for t2 in range(t1 + 1, len(v_taos[-1])):
@@ -160,7 +161,7 @@ class RTV_graph:
                                 break
                         if condition:
                             # CHECK 3
-                            returned_value = TripAlgo.travel(v, new_trip_requests, map_graph, spc_dict)
+                            returned_value = TripAlgo.travel(v, new_trip_requests, map_graph, spc_dict, current_time=current_time)
                             if returned_value[0] == True:
                                 taoK.append((Trip.Trip(new_trip_requests), returned_value[1]))
             v_taos.append(copy.copy(taoK))

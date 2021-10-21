@@ -130,9 +130,9 @@ def path_builder(p1, p2, p3):
 # Returns a tuple with 3 values - True/False (if a route exists), int - the accumulated_delay of the found route, and the found route
 # (a tuple of tuples, each tuple in it consists of 2 objects - the node to drive to, and if it picking it up or dropping them off)
 
-def travel(v: Vehicle, R: Tuple[Request.Request, ...], map_graph, spc_dict):  # Request should be an array. Need to check how to do that.
+def travel(v: Vehicle, R: Tuple[Request.Request, ...], map_graph, spc_dict, current_time=None):  # Request should be an array. Need to check how to do that.
 
-    first_node = travel_node.travel_node(_v=v, requests=R, map_graph=map_graph, spc_dict=spc_dict)
+    first_node = travel_node.travel_node(_v=v, requests=R, map_graph=map_graph, spc_dict=spc_dict, current_time=current_time)
 
     # The threshold for the tree, is the cost, or delay, caused for a found route. It's max value can be (the amount of riders on the vehicle + amount of requests) * Request.travel_delay, so that is it's initial value. The initial threshold.
     initial_threshold = len(first_node.current_possible_destinations) * Request.Request.travel_delay
@@ -147,11 +147,11 @@ def expand_tree(current_node: travel_node, t: int, map_graph: networkx.Graph, sp
     answer_route = []
     empty_answer = (False, -1, ())
     # check if already went over the threshold
-    if current_node.accumulating_delay >= threshold:
+    if datetime.timedelta(seconds=current_node.accumulating_delay) >= threshold:
         return empty_answer
 
     # check if the lowest extra_time_left value of the left possible destinations is negative - meaning this route is not relevant
-    if current_node.current_possible_destinations[0][0] < 0:
+    if current_node.current_possible_destinations[0][0] < datetime.timedelta(seconds=0):
         return empty_answer
 
     # if there are no more possible destinations, it means we have found a route, and it has lower cost (accumulating_delay) then the best we found so far
