@@ -54,11 +54,12 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
     list_of_rows = list_of_csv_rows(requests_csv_path)
     epochs_list = []
     epoch = []
-    current_time = str_to_time(list_of_rows[1][1])
-    if starting_time is not None:
-        current_time = str_to_time(starting_time)
-    ending_time = current_time + datetime.timedelta(seconds=(epoch_len_sec*num_of_epochs))
     e_len = datetime.timedelta(seconds=epoch_len_sec)
+    current_time = str_to_time(list_of_rows[1][1]) # TODO Check if + e_len neede here.
+    if starting_time is not None:
+        current_time = str_to_time(starting_time)+e_len
+    ending_time = current_time + datetime.timedelta(seconds=(epoch_len_sec*num_of_epochs))
+
     for r in list_of_rows:
         if r[1] == 'pickup_datetime':
             continue
@@ -130,7 +131,9 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
 
 if __name__ == '__main__':
     print('this is main, now lets see...')
-    running_ny_sim('clean_2013.csv',10, 2, 30, starting_time='2013-05-05 00:00:00')
+    start_time=datetime.datetime.now()
+    running_ny_sim('clean_2013.csv',10, 1, 30, starting_time='2013-05-05 00:00:00')
+    print('====== is took : '+str(datetime.datetime.now() - start_time))
 
 
 
