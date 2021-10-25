@@ -8,8 +8,10 @@ import TripAlgo
 import Vehicle
 
 
-def two_trips_to_unique_set(trip1, trip2):
-    return set(trip1.requests + trip2.requests)
+def two_trips_to_unique_list(trip1, trip2):
+    # Turn to set to not have a request twice in the group.
+    # Turn back to list so we can use the sort() function of list
+    return list(set(trip1.requests + trip2.requests))
 
 
 class RTV_graph:
@@ -31,9 +33,15 @@ class RTV_graph:
 
         self.tao = [[] for _ in range(Vehicle.Vehicle.max_capacity)]
 
+        vehicle_counter = 0
         # Now for each vehicle
         for v in vehicle_nodes:
+            print("Starting algo1 for vehicle number " + str(vehicle_counter))
+            vehicle_counter+=1
+            begining_time = datetime.datetime.now()
             v_taos = self.algo1(v,spc_dict=spc_dict, map_graph=map_graph, rv_graph=rv_graph, current_time=current_time)
+            ending_time = datetime.datetime.now()
+            print("Ended algo1 for vehicle number " + str(vehicle_counter) + ". Time taken = " + str(ending_time-begining_time))
             # Now merge all of v_taos entries to main tao.
 
             # There is a problem.
@@ -95,6 +103,16 @@ class RTV_graph:
         # algo1()
 
         requests_connected_to_v = [x[1] for x in rv_graph.graph.edges() if x[0] == v]
+
+        # requests_connected_to_v = []
+        # counter = 0
+        # for e in rv_graph.graph.edges():
+        #     if e[0] == v:
+        #         counter+=1
+        #         requests_connected_to_v.append(e[1])
+        #         if(counter%20==0):
+        #             print("appended edge " + str(e))
+
         v_taos = []
         # All the taos, the groups of trips the current vehicle can make. The groups in it are groups of trips of the same size.
         # Will be later added, or merged, to the tao of the whole RTV_graph
@@ -122,11 +140,11 @@ class RTV_graph:
 
         for r1 in range(len(requests_connected_to_v) - 1):  # for each trip in the previous taoK
             for r2 in range(r1 + 1, len(requests_connected_to_v)):
-                if rv_graph.has_edge(requests_connected_to_v[r1], requests_connected_to_v[r2]):
+                if rv_graph.graph.has_edge(requests_connected_to_v[r1], requests_connected_to_v[r2]):
                     requests = (requests_connected_to_v[r1], requests_connected_to_v[r2])
                     returned_value = TripAlgo.travel(v, requests, map_graph, spc_dict, current_time=current_time)
                     if returned_value[0] == True:
-                        taoK.append((Trip.Trip(r1, r2), returned_value[1]))
+                        taoK.append((Trip.Trip(requests=(r1, r2)), returned_value[1]))
         v_taos.append(copy.copy(taoK))
         taoK = []
 
@@ -145,7 +163,7 @@ class RTV_graph:
                 for t2 in range(t1 + 1, len(v_taos[-1])):
                     trip2 = v_taos[-1][t2][0]
                     # We have the 2 trips we want to check, now we check CHECK 1
-                    new_trip_requests = two_trips_to_unique_set(trip1, trip2)
+                    new_trip_requests = two_trips_to_unique_list(trip1, trip2)
                     if len(new_trip_requests) == k:
                         new_trip_requests.sort()  # We sort the trip, to make sure that later, when checking if a sub_trip exists within taok-1 (v_taos[-1]), we will not miss because of ordering
                         new_trip_requests = tuple(new_trip_requests)  # make it to a tuple so make sure it isn't changed

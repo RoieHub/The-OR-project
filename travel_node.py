@@ -71,10 +71,22 @@ class travel_node:
 
             # After that, re-sort
             for c in self.current_possible_destinations:
+                spc_dict_caregiver.spc_dict_caregiver(spc_dict=spc_dict, map_graph=map_graph, source_node=self.previous_location)
+                spc_dict_caregiver.spc_dict_caregiver(spc_dict=spc_dict, map_graph=map_graph, source_node=self.current_location)
+
+                # print("self.previous_location = " + str(self.previous_location) + ", c[1].origin = " + str(c[1].origin) + ", c[1].destination = " + str(c[1].destination))
                 if c[2] =='p':
-                    c[0] = c[0] + datetime.timedelta(seconds=spc_dict[self.previous_location][1][c[1].origin]) - added_time - datetime.timedelta(seconds=spc_dict[self.current_location][1][c[1].origin])
+                    one = datetime.timedelta(seconds=spc_dict[self.previous_location][1][c[1].origin])
+                    three = datetime.timedelta(seconds=spc_dict[self.current_location][1][c[1].origin])
+
+                    c[0] = c[0] + one - added_time - three
                 else:
-                    c[0] = c[0] + datetime.timedelta(seconds=spc_dict[self.previous_location][1][c[1].destination]) - added_time - datetime.timedelta(seconds=spc_dict[self.current_location][1][c[1].destination])
+                    one = datetime.timedelta(seconds=spc_dict[self.previous_location][1][c[1].destination])
+                    three = datetime.timedelta(seconds=spc_dict[self.current_location][1][c[1].destination])
+
+                    c[0] = c[0] + one - added_time - three
+
+
                 # c[0] = c[1]. self.time + spc_dict
 
             if destination_to_remove[2] == 'p':  # if the vehicle drove to a request, a pickup, add the drop-off to the current_possible_destinations
@@ -125,6 +137,7 @@ class travel_node:
             for r in requests:
                 # extra_time_left_to_pickup = r.latest_time_to_pick_up - now
                 spc_dict_caregiver.spc_dict_caregiver(spc_dict=spc_dict , map_graph=map_graph,source_node=r.origin)
+                spc_dict_caregiver.spc_dict_caregiver(spc_dict=spc_dict, map_graph=map_graph, source_node=self.current_location)
                 if r.estimated_dropoff_time is None:
                     extra_time_left_to_pickup = r.latest_time_to_pick_up
                 else: #in this case, a vehicle was already assigned
