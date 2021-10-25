@@ -80,8 +80,11 @@ class travel_node:
             if destination_to_remove[2] == 'p':  # if the vehicle drove to a request, a pickup, add the drop-off to the current_possible_destinations
                 #calculte the extra_time_left_to_drop-off, by taking the request's estimated_dropoff_time, subtract the "current" time (self.time, the time this vehicle would reach this current location) and subtract the time to drive
                 # from current_location to the destination of the ndoe we picked up
-                extra_time_left_to_dropoff = destination_to_remove[1].estimated_dropoff_time - self.time - datetime.timedelta(seconds=spc_dict[self.current_location][1][destination_to_remove[0].destination])
-
+                if destination_to_remove[1].estimated_dropoff_time is not None:
+                    extra_time_left_to_dropoff = destination_to_remove[1].estimated_dropoff_time
+                else:
+                    extra_time_left_to_dropoff = destination_to_remove[1].latest_time_to_dropoff
+                extra_time_left_to_dropoff -= self.time + datetime.timedelta(seconds=spc_dict[self.current_location][1][destination_to_remove[0].destination])
                 # heappush(self.current_possible_destinations, (extra_time_left_to_dropoff, destination_to_remove[0], 'd'))  #the 'd' is to say this is a drop-off
                 self.current_possible_destinations.append([extra_time_left_to_dropoff, destination_to_remove[1], 'd'])
 
@@ -121,16 +124,18 @@ class travel_node:
 
             for r in requests:
                 # extra_time_left_to_pickup = r.latest_time_to_pick_up - now
+                spc_dict_caregiver.spc_dict_caregiver(spc_dict=spc_dict , map_graph=map_graph,source_node=r.origin)
                 if r.estimated_dropoff_time is None:
-                    extra_time_left_to_pickup = r.latest_time_to_pick_up  - self.time #TODO minus time to get from vehicle's current location to request origin
+                    extra_time_left_to_pickup = r.latest_time_to_pick_up  - self.time - datetime.timedelta(seconds=spc_dict[self.current_location][1][r.origin])
                 else: #in this case, a vehicle was already assigned
-                    extra_time_left_to_pickup = r.estimated_dropoff_time - self.time #TODO minus time to get from vehicle's current location to request origin
+                    extra_time_left_to_pickup = r.estimated_dropoff_time - self.time - datetime.timedelta(seconds=spc_dict[self.current_location][1][r.origin])
                 # heappush(self.current_possible_destinations, (extra_time_left_to_pickup, r, 'p')) #the 'p' is to say this is a pickup
                 self.current_possible_destinations.append([extra_time_left_to_pickup, r, 'p']) #the 'p' is to say this is a pickup
 
             #add all the passangers currently on the vehicle as possible destinations, but this time calculate time left to start going their destinations (as they were already picked-up)
             for vr in _v.passengers:
-                extra_time_left_to_dropoff = vr.estimated_dropoff_time - self.time #TODO minus time to get from vehicle's current location to passenger destination
+                spc_dict_caregiver.spc_dict_caregiver(spc_dict=spc_dict, map_graph=map_graph, source_node=vr.destination)
+                extra_time_left_to_dropoff = vr.estimated_dropoff_time - self.time - datetime.timedelta(seconds=spc_dict[self.current_location][1][vr.destination]) #TODO minus time to get from vehicle's current location to passenger destination
                 # heappush(self.current_possible_destinations, (extra_time_left_to_dropoff, vr, 'd')) #the 'd' is to say this is a drop-off
                 self.current_possible_destinations.append([extra_time_left_to_dropoff, vr, 'd']) #the 'd' is to say this is a drop-off
 

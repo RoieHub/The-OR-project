@@ -27,22 +27,23 @@ class Request:
     def __hash__(self):
         return hash(self.__repr__())
 
-    def __init__(self, ori, dest, request_time, spc_dict, map_graph):
+    def __init__(self, ori, dest, request_time, spc_dict, map_graph , data_line_id):
         self.id = Request.class_counter
         Request.class_counter += 1
+        self.data_id =  data_line_id
         self.origin = ori
         self.destination = dest
         self.time_of_request = request_time
-        self.latest_time_to_pick_up = self.time_of_request + datetime.timedelta(minutes=15)
+        self.latest_time_to_pick_up = self.time_of_request + Request.max_waiting_time
         self.actual_pick_up_time = None
-        self.estimated_dropoff_time = None  # Should be None until assigned to someone. We rely on this in the assignment code!
-        #self.earliest_time_to_dest = None #TODO - set this as self.time_of_request + shortest time to get to request's destination
-
+        self.estimated_dropoff_time = None
+        # Should be None until assigned to someone. We rely on this in the assignment code!
         spc_dict_caregiver.spc_dict_caregiver(spc_dict,map_graph,ori)
         try:
             self.earliest_time_to_dest = request_time + datetime.timedelta(seconds=(spc_dict[ori][1][dest]))
         except:
-            print("failed to set self.earliest_time_to_dest! origin = " + str(ori) + ", dest = " + str(dest) +".")
+            print("failed to set request data id: " +str(data_line_id)+"self.earliest_time_to_dest! origin = " + str(ori) + ", dest = " + str(dest) +".")
+        self.latest_time_to_dropoff = self.earliest_time_to_dest + Request.travel_delay
     def __lt__(self, other):
         return self.id < other
 

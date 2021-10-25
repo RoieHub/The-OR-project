@@ -1,6 +1,8 @@
 import copy
 import datetime
 
+import networkx as nx
+
 import Greedy_assignment
 from roies_util import str_to_time
 import Trip
@@ -23,18 +25,18 @@ Param:
 Return:
 @ v_list : list of new vehicles
 """
-def init_ny_vehicles(num_of_vehicles ):
+def init_ny_vehicles(num_of_vehicles):
     # Open a log for the run.
-    logging.basicConfig(level=logging.INFO,filename='or_'+str(datetime.datetime.now()).replace(':', '_')+'.log')
+    #logging.basicConfig(level=logging.INFO,filename='or_'+str(datetime.datetime.now()).replace(':', '_')+'.log')
     # Basic useage example :  logging.INFO('This will be logged)
     # Generate  vehicles at starting nodes , chosen by Roie , based on Connor's work.
     v_start_ids = [42446021, 42442463, 3099327950, 42440022, 42430263, 42434340]
     v_list = []
     for i in range(0, num_of_vehicles):
         v = Vehicle.Vehicle(v_start_ids[i % (len(v_start_ids))])
-        #v = Vehicle.Vehicle(422)
         v_list.append(v)
     return v_list
+
 
 
 
@@ -55,7 +57,7 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
     epochs_list = []
     epoch = []
     e_len = datetime.timedelta(seconds=epoch_len_sec)
-    current_time = str_to_time(list_of_rows[1][1]) # TODO Check if + e_len neede here.
+    current_time = str_to_time(list_of_rows[1][1]) # TODO Check if + e_len needed here.
     if starting_time is not None:
         current_time = str_to_time(starting_time)+e_len
     ending_time = current_time + datetime.timedelta(seconds=(epoch_len_sec*num_of_epochs))
@@ -67,7 +69,7 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
         if pu_time < current_time: # Not in our Epochs.
             continue
         elif pu_time < (current_time+e_len): # Request is in current epoch
-            epoch.append(Request.Request(int(r[2]), int(r[3]), pu_time, spc_dict=spc_dict, map_graph=map_graph))
+            epoch.append(Request.Request(ori=int(r[2]), dest=int(r[3]), request_time=pu_time, spc_dict=spc_dict, map_graph=map_graph,data_line_id=int(r[0])))
             continue
         elif pu_time >= (current_time+e_len) and (current_time+e_len) <= ending_time: # This belong to a new epoch.
             # Append the epoch to epoch_list
@@ -76,7 +78,7 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
             epoch.clear()
             #Update current time
             current_time += e_len
-            epoch.append(Request.Request(int(r[2]), int(r[3]), pu_time, spc_dict=spc_dict, map_graph=map_graph))
+            epoch.append(Request.Request(ori=int(r[2]), dest=int(r[3]), request_time=pu_time, spc_dict=spc_dict, map_graph=map_graph,data_line_id=int(r[0])))
             continue
         elif pu_time >= ending_time:
             break
@@ -129,12 +131,78 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
         greedy = Greedy_assignment.Greedy_assingment(rtv)
         print('It is alive!')
 
+
+
+
+"""
+This are function for testing area
+"""
+
+def init_simple_vehicles(num_of_vehicles):
+    # Open a log for the run.
+    #logging.basicConfig(level=logging.INFO,filename='or_'+str(datetime.datetime.now()).replace(':', '_')+'.log')
+    # Basic useage example :  logging.INFO('This will be logged)
+    # Generate  vehicles at starting nodes , chosen by Roie , based on Connor's work.
+    v_start_ids = [0, 4, 20, 24]
+    v_list = []
+    for i in range(0, num_of_vehicles):
+        v = Vehicle.Vehicle(v_start_ids[i % (len(v_start_ids))])
+        v_list.append(v)
+    return v_list
+
+def create_simple_graph(id):
+    map_graph = nx.Graph()
+    if id == 1:
+        # Creating width edges weighted 1.
+        for row in range(5):
+            for i in range(5*row,(5*row)+4):
+                map_graph.add_edge(i, (i + 1), travel_times=1)
+
+        for row in range(4):
+            for i in range(5*row,(5*row)+4):
+                map_graph.add_edge(i, (i + 5), travel_times=1)
+    return map_graph
+
+
+
+def Running_simple_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, starting_time=None):
+    # Virtual vehicle for algorithm purpose.
+    virtual_v = Vehicle.Vehicle(0)
+
+    v_list = init_simple_vehicles(num_of_vehicles)
+
+    # Creating Shortest paths costs dictionary to hold those val's.
+    # global spc_dict
+    spc_dict_simple = {}
+
+    # Creating our map_graph.
+    map_graph = create_simple_graph(id=id)
+
+    # Create logger.
+    logging.basicConfig(filename='app.log', level=logging.INFO)
+    # Example :logging.info('This will get logged to a file')
+
+    epochs = epoch_separator(requests_csv_path=csv_path, epoch_len_sec=epoch_len_sec, num_of_epochs=num_of_epochs,
+                             starting_time=starting_time, spc_dict=spc_dict_simple, map_graph=map_graph)
+
+    curr_time = str_to_time(starting_time)
+    added_time = datetime.timedelta(seconds=epoch_len_sec)
+    # Working on each Epoch
+    for epoch in epochs:
+        curr_time += added_time
+        rv = RV_graph.RV_graph(requests_list=epoch, vehicle_list=v_list, virtual_vehicle=virtual_v, map_graph=map_graph,
+                               current_time=curr_time, spc_dict=spc_dict_simple)
+        rtv = RTV_graph.RTV_graph(rv_graph=rv, spc_dict=spc_dict_simple, map_graph=map_graph,
+                                  current_time=curr_time)  # TODO Check if current time needed as well
+        greedy = Greedy_assignment.Greedy_assingment(rtv)
+        print('It is alive!')
+
+
 if __name__ == '__main__':
     print('this is main, now lets see...')
     start_time=datetime.datetime.now()
     running_ny_sim('clean_2013.csv',10, 1, 30, starting_time='2013-05-05 00:00:00')
     print('====== is took : '+str(datetime.datetime.now() - start_time))
-
 
 
 

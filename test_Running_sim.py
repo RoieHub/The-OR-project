@@ -1,6 +1,7 @@
 import unittest
 import Runnin_Sim
 from roies_util import str_to_time
+import osmnx as ox
 
 
 class Test_Running_sim(unittest.TestCase):
@@ -14,7 +15,12 @@ class Test_Running_sim(unittest.TestCase):
         self.assertEqual(v3[0].id,5)
 
     def test_epoch_seperator_from_start(self):
-        epochs=Runnin_Sim.epoch_separator('clean_2013.csv',5,2)
+        # Creating our map_graph.
+        map_graph = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
+        # G = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
+        map_graph = ox.add_edge_speeds(map_graph)
+        map_graph = ox.add_edge_travel_times(map_graph)
+        epochs=Runnin_Sim.epoch_separator('clean_2013.csv',5,2,map_graph=map_graph)
         self.assertEqual(epochs[0][0].time_of_request, str_to_time('2013-05-01 00:00:01'))
         for r in epochs[0]:
             self.assertLessEqual(r.time_of_request,str_to_time('2013-05-01 00:00:06'))
@@ -22,19 +28,41 @@ class Test_Running_sim(unittest.TestCase):
             self.assertLessEqual(r.time_of_request, str_to_time('2013-05-01 00:00:11'))
 
     def test_epoch_seperator_from_mid(self):
-        epochs=Runnin_Sim.epoch_separator('clean_2013.csv',5,2,str_to_time('2013-05-05 00:00:06'))
+        # Creating our map_graph.
+        map_graph = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
+        # G = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
+        map_graph = ox.add_edge_speeds(map_graph)
+        map_graph = ox.add_edge_travel_times(map_graph)
+        epochs=Runnin_Sim.epoch_separator('clean_2013.csv',5,2,str_to_time('2013-05-05 00:00:06'),map_graph=map_graph)
         self.assertEqual(epochs[0][0].time_of_request, str_to_time('2013-05-05 00:00:06'))
         for r in epochs[0]:
             self.assertLessEqual(r.time_of_request,str_to_time('2013-05-05 00:00:11'))
         for r in epochs[0]:
             self.assertLessEqual(r.time_of_request, str_to_time('2013-05-05 00:00:16'))
     def test_epoch_seperator_until_end(self):
+        # Creating our map_graph.
+        map_graph = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
+        # G = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
+        map_graph = ox.add_edge_speeds(map_graph)
+        map_graph = ox.add_edge_travel_times(map_graph)
         epochs=Runnin_Sim.epoch_separator('clean_2013.csv',5,2,str_to_time('2013-05-11 23:58:00'))
         self.assertEqual(epochs[0][0].time_of_request, str_to_time('2013-05-11 23:58:00'))
         for r in epochs[0]:
             self.assertLessEqual(r.time_of_request,str_to_time('2013-05-11 23:59:00'))
         for r in epochs[0]:
             self.assertLessEqual(r.time_of_request, str_to_time('2013-05-11 23:59:00'))
+
+
+    """
+    This section tests simple graph
+    """
+    def test_simple_graph_construction(self):
+        v1=Runnin_Sim.init_simple_vehicles(1)
+        map_graph = Runnin_Sim.create_simple_graph(1)
+        print('done')
+        self.assertEqual(len(map_graph.nodes()),25)
+
+
 
 
 
