@@ -55,7 +55,7 @@ class travel_node:
             #set this node's vehicle to be the same as that of the node you are copying from
             #copy the current_possible_destinations as well, from the previous node, and remove the destination you just drove to
 
-            # self.my_vehicle = copy_me.my_vehicle #Not using vehicle anywhere, so not copying it
+            self.my_vehicle = copy_me.my_vehicle #Only using vehicle for the initial node, so should consider changing so we don't use it.
             self.current_possible_destinations = copy.copy(copy_me.current_possible_destinations) #Don't think a deep copy is needed here. Items in current_possible_destinations are tuples, of time left (int, will be copied without problem, doesn't need deep copy),
             # , the request (OK to point to. Only thing that can change in it is the estimated_dropoff_time, and that doesn't matter here), and a char that indicates whether this is a pickup or dropoff, and that shouldn't change either.
             self.current_possible_destinations.remove(destination_to_remove) #TODO - make sure this works, that the relevant tuple is removed from the current_possible_destinations
@@ -84,7 +84,7 @@ class travel_node:
                     extra_time_left_to_dropoff = destination_to_remove[1].estimated_dropoff_time
                 else:
                     extra_time_left_to_dropoff = destination_to_remove[1].latest_time_to_dropoff
-                extra_time_left_to_dropoff -= self.time + datetime.timedelta(seconds=spc_dict[self.current_location][1][destination_to_remove[0].destination])
+                extra_time_left_to_dropoff -= self.time + datetime.timedelta(seconds=spc_dict[self.current_location][1][destination_to_remove[1].destination])
                 # heappush(self.current_possible_destinations, (extra_time_left_to_dropoff, destination_to_remove[0], 'd'))  #the 'd' is to say this is a drop-off
                 self.current_possible_destinations.append([extra_time_left_to_dropoff, destination_to_remove[1], 'd'])
 
@@ -111,7 +111,7 @@ class travel_node:
             # self.accumulating_delay will accumulate the delays caused to the riders. We will add to it each time we get a person to their drop_off location.
             # Also, we will compare it to the threshold, the best we found so far (minimum delay after getting everyone to their destination).
             # That way, if at some point we surpass that, meaning the route\branch of the tree we are checking now, is worse then the best we found so far, we can cut it. Stop searching there, saving time searching the tree.
-            self.accumulating_delay = 0
+            self.accumulating_delay = datetime.timedelta(seconds=0)
 
             #add all the requests as possible destinations, calculating time left to start going to that destination, using that as the value to compare for the heap
 
@@ -126,9 +126,11 @@ class travel_node:
                 # extra_time_left_to_pickup = r.latest_time_to_pick_up - now
                 spc_dict_caregiver.spc_dict_caregiver(spc_dict=spc_dict , map_graph=map_graph,source_node=r.origin)
                 if r.estimated_dropoff_time is None:
-                    extra_time_left_to_pickup = r.latest_time_to_pick_up  - self.time - datetime.timedelta(seconds=spc_dict[self.current_location][1][r.origin])
+                    extra_time_left_to_pickup = r.latest_time_to_pick_up
                 else: #in this case, a vehicle was already assigned
-                    extra_time_left_to_pickup = r.estimated_dropoff_time - self.time - datetime.timedelta(seconds=spc_dict[self.current_location][1][r.origin])
+                    extra_time_left_to_pickup = r.estimated_dropoff_time
+
+                extra_time_left_to_pickup -= self.time + datetime.timedelta(seconds=spc_dict[self.current_location][1][r.origin])
                 # heappush(self.current_possible_destinations, (extra_time_left_to_pickup, r, 'p')) #the 'p' is to say this is a pickup
                 self.current_possible_destinations.append([extra_time_left_to_pickup, r, 'p']) #the 'p' is to say this is a pickup
 

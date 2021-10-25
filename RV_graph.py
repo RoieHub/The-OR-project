@@ -35,7 +35,7 @@ class RV_graph:
     # TODO - when initiating  the program, create a virtual vehicle. It will be the premenant virtual vehicle, used all throught the running of the program.
     # current_time will be passed to this function. It can eoither be actual datetime.datetime.now, or some time given by a simulated run
     def __init__(self, requests_list: Tuple[Request.Request, ...], vehicle_list: Tuple[Vehicle.Vehicle, ...], virtual_vehicle: Vehicle, map_graph: nx.Graph, current_time: datetime ,spc_dict: dict):
-        self.map_graph = map_graph
+        # self.map_graph = map_graph
         # Init an empty Graph
         self.graph = nx.Graph()
         # Should we first convert the requests and vehicles to nodes? or the graph does it anyway
@@ -75,7 +75,7 @@ class RV_graph:
                 virtual_vehicle.curr_pos = first_req.origin
                 virtual_vehicle.passengers = [first_req]
 
-                returned_value = TripAlgo.travel(v=virtual_vehicle, R=(second_req,), map_graph=self.map_graph, spc_dict=spc_dict, current_time=current_time)
+                returned_value = TripAlgo.travel(v=virtual_vehicle, R=(second_req,), map_graph=map_graph, spc_dict=spc_dict, current_time=current_time)
                 if returned_value[0] == True:
                     self.graph.add_edge(first_req, second_req, weight=returned_value[1])  # TODO - decide if need the weight attribute here, and also if we need the route, which can be added (it is returned_value[2])
 
@@ -88,7 +88,7 @@ class RV_graph:
                 current_vehicle = vehicle_list[i]
                 current_request = copy.copy(requests_list[j])
 
-                returned_value = TripAlgo.travel(v=virtual_vehicle, R=(current_request,), map_graph=self.map_graph, spc_dict=spc_dict, current_time=current_time)
+                returned_value = TripAlgo.travel(v=virtual_vehicle, R=(current_request,), map_graph=map_graph, spc_dict=spc_dict, current_time=current_time)
                 if returned_value[0] == True:
                     self.graph.add_edge(vehicle_list[i], requests_list[j], weight=returned_value[1])
 

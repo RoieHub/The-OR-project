@@ -147,16 +147,18 @@ def expand_tree(current_node: travel_node, t: int, map_graph: networkx.Graph, sp
     answer_route = []
     empty_answer = (False, -1, ())
     # check if already went over the threshold
-    if datetime.timedelta(seconds=current_node.accumulating_delay) >= threshold:
-        return empty_answer
-
-    # check if the lowest extra_time_left value of the left possible destinations is negative - meaning this route is not relevant
-    if current_node.current_possible_destinations[0][0] < datetime.timedelta(seconds=0):
+    if current_node.accumulating_delay >= threshold:
         return empty_answer
 
     # if there are no more possible destinations, it means we have found a route, and it has lower cost (accumulating_delay) then the best we found so far
     if len(current_node.current_possible_destinations) == 0:
         return True, current_node.accumulating_delay, current_node.route
+
+    # check if the lowest extra_time_left value of the left possible destinations is negative - meaning this route is not relevant
+    if current_node.current_possible_destinations[0][0] < datetime.timedelta(seconds=0):
+        return empty_answer
+
+
 
     # for each of the possible children of the node (i.e. going to one of the current_possible_destinations)
     # try to go there, and expand the tree further.

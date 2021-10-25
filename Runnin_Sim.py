@@ -59,19 +59,19 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
     e_len = datetime.timedelta(seconds=epoch_len_sec)
     current_time = str_to_time(list_of_rows[1][1]) # TODO Check if + e_len needed here.
     if starting_time is not None:
-        current_time = str_to_time(starting_time)+e_len
+        current_time = str_to_time(starting_time) #+e_len Ofir - I commented this out as I think this is a mistake.
     ending_time = current_time + datetime.timedelta(seconds=(epoch_len_sec*num_of_epochs))
 
     for r in list_of_rows:
         if r[1] == 'pickup_datetime':
             continue
         pu_time = str_to_time(r[1])
-        if pu_time < current_time: # Not in our Epochs.
+        if pu_time < current_time: # Not in our Epochs. Ofir - I This is to skip the requests that are before the time from which we want to start the simulation.
             continue
         elif pu_time < (current_time+e_len): # Request is in current epoch
             epoch.append(Request.Request(ori=int(r[2]), dest=int(r[3]), request_time=pu_time, spc_dict=spc_dict, map_graph=map_graph,data_line_id=int(r[0])))
             continue
-        elif pu_time >= (current_time+e_len) and (current_time+e_len) <= ending_time: # This belong to a new epoch.
+        elif pu_time >= (current_time+e_len) and (current_time+e_len) <= ending_time: # This belongs to a new epoch.
             # Append the epoch to epoch_list
             epochs_list.append(copy.copy(epoch))
             # Clear the epoch
@@ -199,10 +199,10 @@ def Running_simple_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, 
 
 
 if __name__ == '__main__':
-    print('this is main, now lets see...')
-    start_time=datetime.datetime.now()
+    # print('this is main, now lets see...')
+    # start_time=datetime.datetime.now()
     running_ny_sim('clean_2013.csv',10, 1, 30, starting_time='2013-05-05 00:00:00')
-    print('====== is took : '+str(datetime.datetime.now() - start_time))
+    # print('====== is took : '+str(datetime.datetime.now() - start_time))
 
 
 
