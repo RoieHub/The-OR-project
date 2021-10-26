@@ -6,8 +6,8 @@ import spc_dict_caregiver
 
 class Request:
     class_counter = 0
-    max_waiting_time = datetime.timedelta(minutes=5)
-    travel_delay = datetime.timedelta(minutes=5) # Max time that can be added to when the person making the request will reach their destination.
+    max_waiting_time = datetime.timedelta(minutes=1)
+    travel_delay = datetime.timedelta(minutes=1.5) # Max time that can be added to when the person making the request will reach their destination.
                                                   # This is used for calculating his max overall delay (i.e. if he had taken a private taxi when he made the request, travel_delay is how much time will verall be added to his delay, including waiting)
 
     """"id: int

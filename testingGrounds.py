@@ -40,7 +40,6 @@ if __name__ == '__main__':
 
 
 
-
     G = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
     G = ox.add_edge_speeds(G)
     G = ox.add_edge_travel_times(G)

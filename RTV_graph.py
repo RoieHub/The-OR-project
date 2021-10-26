@@ -37,11 +37,11 @@ class RTV_graph:
         # Now for each vehicle
         for v in vehicle_nodes:
             print("Starting algo1 for vehicle number " + str(vehicle_counter))
-            vehicle_counter+=1
             begining_time = datetime.datetime.now()
             v_taos = self.algo1(v,spc_dict=spc_dict, map_graph=map_graph, rv_graph=rv_graph, current_time=current_time)
             ending_time = datetime.datetime.now()
             print("Ended algo1 for vehicle number " + str(vehicle_counter) + ". Time taken = " + str(ending_time-begining_time))
+            vehicle_counter += 1
             # Now merge all of v_taos entries to main tao.
 
             # There is a problem.
@@ -59,7 +59,7 @@ class RTV_graph:
             # So, we set the variable "delay_of_passengers_of_v" to 0
             # and for each passenger on the vehicle, we calc his expected delay (it is estimated_dropoff_time - earliest_time_to_dest ===> the time added to him because he used our services, instead of driving a private car)
             # There shouldn't be any passengers with None as their estimated_dropoff_time, but checking to make sure, as if it is none, it could damage our calculation.
-            delay_of_passengers_of_v = 0
+            delay_of_passengers_of_v = datetime.timedelta(seconds=0)
             for p in v.passengers:
                 if p.estimated_dropoff_time is not None:
                     delay_of_passengers_of_v += p.estimated_dropoff_time - p.earliest_time_to_dest
@@ -103,6 +103,7 @@ class RTV_graph:
         # algo1()
 
         requests_connected_to_v = [x[1] for x in rv_graph.graph.edges() if x[0] == v]
+        print("len(requests_connected_to_v) = " + str(len(requests_connected_to_v)))
 
         # requests_connected_to_v = []
         # counter = 0
@@ -119,6 +120,7 @@ class RTV_graph:
         taoK = []  # current_tao. from tao_1 to tao_i, where i is the max amount of people the vehicle can have on board
 
         # In the case of tao_1, all edges connected to v, create a trip
+        begining_time = datetime.datetime.now()
         for r in requests_connected_to_v:
             # No need to calc the delay by using TripAlgo, as that was already calculated for each requests_connected_to_v.
             # The fact that the request is connected to v, means that tripAlgo checked it, and returned true, meaning v can take the request.
@@ -127,16 +129,26 @@ class RTV_graph:
             # The following line gets the weight of the edge from the graph - from all the edges, take the one between v and r, take the weight in it.
             # This will have to be put in to a list, so we take the first and only value in there, the weight we wanted.
             weight = [z['weight'] for x, y, z in rv_graph.graph.edges(data=True) if (x == v) & (y == r)][0]
-            taoK.append((Trip.Trip(requests=(r)), weight))
+            taoK.append((Trip.Trip(requests=(r,)), weight))
+        ending_time = datetime.datetime.now()
+
+        print("Creating Trips of size 1 took this much time = " + str(ending_time-begining_time))
+
 
         # After we are finished adding all the trips to taoK, we append them to v_taos
         v_taos.append(copy.copy(taoK))
         taoK = []
 
+
+
+
         # In the case of tao_2, we go over every pair of trips of tao_1, trips of size 1 having 1 request in them, and check if -
         #   A. The 2 requests have an edge between them in the RV_graph
         #   B. The travel() function returns "true" (i.e. a route exists for both of the requests + the vehicle)
         # If so, we add this trip (of size 2) to taoK, to be added later to v_taos
+
+        begining_time = datetime.datetime.now()
+
 
         for r1 in range(len(requests_connected_to_v) - 1):  # for each trip in the previous taoK
             for r2 in range(r1 + 1, len(requests_connected_to_v)):
@@ -144,7 +156,12 @@ class RTV_graph:
                     requests = (requests_connected_to_v[r1], requests_connected_to_v[r2])
                     returned_value = TripAlgo.travel(v, requests, map_graph, spc_dict, current_time=current_time)
                     if returned_value[0] == True:
-                        taoK.append((Trip.Trip(requests=(r1, r2)), returned_value[1]))
+                        taoK.append((Trip.Trip(requests=requests), returned_value[1]))
+
+        ending_time = datetime.datetime.now()
+
+        print("Creating Trips of size 2 took this much time = " + str(ending_time-begining_time))
+
         v_taos.append(copy.copy(taoK))
         taoK = []
 
@@ -158,6 +175,10 @@ class RTV_graph:
         # If so, add the the trip (made by the mentioned union) to taoK.
 
         for k in range(3, Vehicle.Vehicle.max_capacity - len(v.passengers) + 1):
+            begining_time = datetime.datetime.now()
+            CHECK2_counter = 0
+            CHECK3_counter = 0
+
             for t1 in range(len(v_taos[-1]) - 1):
                 trip1 = v_taos[-1][t1][0]
                 for t2 in range(t1 + 1, len(v_taos[-1])):
@@ -170,18 +191,42 @@ class RTV_graph:
                         # CHECK 2
                         condition = True
                         # The above boolean variable is used to check if the condition CHECK 2 is true or not. It will change to false in case it doens't, and we break out of the for loop to not waste time.
+                        # begining_time_CHECK2 = datetime.datetime.now()
                         for r in new_trip_requests:
                             sub_trip_requests = list(
                                 copy.copy(new_trip_requests))  # should be a list so we can remove the relevant request r
                             sub_trip_requests.remove(r)
-                            if Trip.Trip(sub_trip_requests) not in (x[0] for x in v_taos[-1]):
+                            Trips_Of_Size_K = [x[0] for x in v_taos[-1]]
+                            if Trip.Trip(tuple(sub_trip_requests)) not in Trips_Of_Size_K:
+                            # if Trip.Trip(sub_trip_requests) not in (x[0] for x in v_taos[-1]):
+                            #     print("CHECK2 False! Trip = " + str(Trip.Trip(sub_trip_requests)) + " and Trips_Of_Size_K = " + str(Trips_Of_Size_K))
                                 condition = False
                                 break
+                        # ending_time_CHECK2 = datetime.datetime.now()
+                        # print("CHECK2 took this much time = " + str(ending_time-begining_time) + ". Also, so we know if it exited or went over all, condition = " + str(condition))
+
                         if condition:
+                            CHECK2_counter+=1
+
+                            # print("Reached check 3!")
                             # CHECK 3
+                            # begining_time_CHECK3 = datetime.datetime.now()
                             returned_value = TripAlgo.travel(v, new_trip_requests, map_graph, spc_dict, current_time=current_time)
                             if returned_value[0] == True:
+                                # print("CHECK3 Condition TRUE")
+                                CHECK3_counter+=1
                                 taoK.append((Trip.Trip(new_trip_requests), returned_value[1]))
+                            # ending_time_CHECK3 = datetime.datetime.now()
+                            # print("CHECK3 took this much time = " + str(ending_time_CHECK3 - begining_time_CHECK3))
+
+
+            print("CHECK2_counter = " + str(CHECK2_counter) + ", CHECK3_counter = " + str(CHECK3_counter))
+            ending_time = datetime.datetime.now()
+            print("Creating Trips of size " + str(k) + " took this much time = " + str(ending_time - begining_time))
+            print("Found " + str(len(taoK)) + " trips of size " + str(k))
+
+
             v_taos.append(copy.copy(taoK))
             taoK = []
+
         return v_taos
