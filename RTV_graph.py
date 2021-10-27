@@ -174,8 +174,17 @@ class RTV_graph:
         # Then, if that condition is true, check (CHECK 3) that this vehicle and the requests of the original union (that of the 2 trips), returns a valid answer form the function travel()
         # If so, add the the trip (made by the mentioned union) to taoK.
 
+
+        taoK_minus1_hashes_dict = {}
+        Trips_Of_Size_K_minus1 = [x[0] for x in v_taos[-1]]
+        for t in Trips_Of_Size_K_minus1:
+            taoK_minus1_hashes_dict[t.__hash__()]=1
+
+
         for k in range(3, Vehicle.Vehicle.max_capacity - len(v.passengers) + 1):
             begining_time = datetime.datetime.now()
+            time_in_CHECK2 = datetime.timedelta(seconds=0)
+            time_in_CHECK3 = datetime.timedelta(seconds=0)
             CHECK2_counter = 0
             CHECK3_counter = 0
 
@@ -191,18 +200,19 @@ class RTV_graph:
                         # CHECK 2
                         condition = True
                         # The above boolean variable is used to check if the condition CHECK 2 is true or not. It will change to false in case it doens't, and we break out of the for loop to not waste time.
-                        # begining_time_CHECK2 = datetime.datetime.now()
+                        begining_time_CHECK2 = datetime.datetime.now()
                         for r in new_trip_requests:
                             sub_trip_requests = list(
                                 copy.copy(new_trip_requests))  # should be a list so we can remove the relevant request r
                             sub_trip_requests.remove(r)
-                            Trips_Of_Size_K = [x[0] for x in v_taos[-1]]
-                            if Trip.Trip(tuple(sub_trip_requests)) not in Trips_Of_Size_K:
+                            # Trips_Of_Size_K = [x[0] for x in v_taos[-1]]
+                            if Trip.Trip(tuple(sub_trip_requests)).__hash__() not in taoK_minus1_hashes_dict:
                             # if Trip.Trip(sub_trip_requests) not in (x[0] for x in v_taos[-1]):
                             #     print("CHECK2 False! Trip = " + str(Trip.Trip(sub_trip_requests)) + " and Trips_Of_Size_K = " + str(Trips_Of_Size_K))
                                 condition = False
                                 break
-                        # ending_time_CHECK2 = datetime.datetime.now()
+                        ending_time_CHECK2 = datetime.datetime.now()
+                        time_in_CHECK2 += ending_time_CHECK2-begining_time_CHECK2
                         # print("CHECK2 took this much time = " + str(ending_time-begining_time) + ". Also, so we know if it exited or went over all, condition = " + str(condition))
 
                         if condition:
@@ -210,23 +220,32 @@ class RTV_graph:
 
                             # print("Reached check 3!")
                             # CHECK 3
-                            # begining_time_CHECK3 = datetime.datetime.now()
+                            begining_time_CHECK3 = datetime.datetime.now()
                             returned_value = TripAlgo.travel(v, new_trip_requests, map_graph, spc_dict, current_time=current_time)
                             if returned_value[0] == True:
                                 # print("CHECK3 Condition TRUE")
                                 CHECK3_counter+=1
                                 taoK.append((Trip.Trip(new_trip_requests), returned_value[1]))
-                            # ending_time_CHECK3 = datetime.datetime.now()
+                            ending_time_CHECK3 = datetime.datetime.now()
+                            time_in_CHECK3 += ending_time_CHECK3-begining_time_CHECK3
                             # print("CHECK3 took this much time = " + str(ending_time_CHECK3 - begining_time_CHECK3))
 
 
             print("CHECK2_counter = " + str(CHECK2_counter) + ", CHECK3_counter = " + str(CHECK3_counter))
+            print("time_in_CHECK2 = " + str(time_in_CHECK2) + " , time_in_CHECK3 = " + str(time_in_CHECK3))
             ending_time = datetime.datetime.now()
             print("Creating Trips of size " + str(k) + " took this much time = " + str(ending_time - begining_time))
             print("Found " + str(len(taoK)) + " trips of size " + str(k))
 
-
             v_taos.append(copy.copy(taoK))
             taoK = []
+
+            begining_time = datetime.datetime.now()
+            taoK_minus1_hashes_dict = {}
+            Trips_Of_Size_K_minus1 = [x[0] for x in v_taos[-1]]
+            for t in Trips_Of_Size_K_minus1:
+                taoK_minus1_hashes_dict[t.__hash__()] = 1
+            ending_time = datetime.datetime.now()
+            print("Creating taoK_minus1_hashes_dict took this much time = " + str(ending_time-begining_time))
 
         return v_taos
