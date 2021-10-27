@@ -1,8 +1,6 @@
 import copy
 import datetime
-
 import networkx as nx
-
 import Greedy_assignment
 from roies_util import str_to_time
 import Trip
@@ -63,7 +61,7 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
     ending_time = current_time + datetime.timedelta(seconds=(epoch_len_sec*num_of_epochs))
 
     for r in list_of_rows:
-        if r[1] == 'pickup_datetime':
+        if r[1] == '1':
             continue
         pu_time = str_to_time(r[1])
         if pu_time < current_time: # Not in our Epochs. Ofir - I This is to skip the requests that are before the time from which we want to start the simulation.

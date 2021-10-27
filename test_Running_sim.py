@@ -6,9 +6,9 @@ import osmnx as ox
 spc_dict = {}
 class Test_Running_sim(unittest.TestCase):
     def test_init_num_of_v(self):
-        v1 = Runnin_Sim.init_ny_vihecles(5)
-        v2 = Runnin_Sim.init_ny_vihecles(0)
-        v3 = Runnin_Sim.init_ny_vihecles(6)
+        v1 = Runnin_Sim.init_ny_vehicles(5)
+        v2 = Runnin_Sim.init_ny_vehicles(0)
+        v3 = Runnin_Sim.init_ny_vehicles(6)
         self.assertEqual(len(v1), 5)  # add assertion here
         self.assertEqual(len(v2), 0)
         self.assertEqual(v1[0].id,0)
@@ -20,7 +20,7 @@ class Test_Running_sim(unittest.TestCase):
         # G = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
         map_graph = ox.add_edge_speeds(map_graph)
         map_graph = ox.add_edge_travel_times(map_graph)
-        epochs=Runnin_Sim.epoch_separator(requests_csv_path='clean_2013.csv',epoch_len_sec=5,num_of_epochs=2,map_graph=map_graph,spc_dict=spc_dict)
+        epochs=Runnin_Sim.epoch_separator(requests_csv_path='2013_best.csv',epoch_len_sec=5,num_of_epochs=2,map_graph=map_graph,spc_dict=spc_dict)
         self.assertEqual(epochs[0][0].time_of_request, str_to_time('2013-05-05 00:00:01'))
         for r in epochs[0]:
             self.assertLessEqual(r.time_of_request,str_to_time('2013-05-05 00:00:06'))
@@ -35,7 +35,7 @@ class Test_Running_sim(unittest.TestCase):
         # G = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
         map_graph = ox.add_edge_speeds(map_graph)
         map_graph = ox.add_edge_travel_times(map_graph)
-        epochs=Runnin_Sim.epoch_separator(requests_csv_path='clean_2013.csv',epoch_len_sec=5,num_of_epochs=2,map_graph=map_graph,spc_dict=spc_dict,starting_time=str_to_time('2013-05-06 00:00:00'))
+        epochs=Runnin_Sim.epoch_separator(requests_csv_path='2013_best.csv',epoch_len_sec=5,num_of_epochs=2,map_graph=map_graph,spc_dict=spc_dict,starting_time=str_to_time('2013-05-06 00:00:00'))
         self.assertEqual(epochs[0][0].time_of_request, str_to_time('2013-05-06 00:00:00'))
         for r in epochs[0]:
             self.assertLessEqual(r.time_of_request, str_to_time('2013-05-06 00:00:05'))
@@ -50,15 +50,12 @@ class Test_Running_sim(unittest.TestCase):
         # G = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
         map_graph = ox.add_edge_speeds(map_graph)
         map_graph = ox.add_edge_travel_times(map_graph)
-        epochs=Runnin_Sim.epoch_separator(requests_csv_path='clean_2013.csv',epoch_len_sec=5,num_of_epochs=2,map_graph=map_graph,spc_dict=spc_dict,starting_time=str_to_time('2013-05-11 23:58:00'))
-        self.assertEqual(epochs[0][0].time_of_request, str_to_time('2013-05-11 23:58:00'))
+        epochs=Runnin_Sim.epoch_separator(requests_csv_path='2013_best.csv',epoch_len_sec=30,num_of_epochs=2,map_graph=map_graph,spc_dict=spc_dict,starting_time=str_to_time('2013-05-11 23:56:59'))
+        self.assertEqual(epochs[0][0].time_of_request, str_to_time('2013-05-11 23:57:00'))
         for r in epochs[0]:
-            self.assertLessEqual(r.time_of_request, str_to_time('2013-05-11 23:58:05'))
-            self.assertGreaterEqual(r.time_of_request, str_to_time('2013-05-11 23:58:00'))
+            self.assertLessEqual(r.time_of_request, str_to_time('2013-05-11 23:57:29'))
+            self.assertGreaterEqual(r.time_of_request, str_to_time('2013-05-11 23:57:00'))
 
-        for r in epochs[1]:
-            self.assertLessEqual(r.time_of_request, str_to_time('2013-05-11 23:58:011'))
-            self.assertGreaterEqual(r.time_of_request, str_to_time('2013-05-11 23:58:06'))
 
     """
     This section tests simple graph
