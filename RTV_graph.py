@@ -59,7 +59,8 @@ class RTV_graph:
             # So, we set the variable "delay_of_passengers_of_v" to 0
             # and for each passenger on the vehicle, we calc his expected delay (it is estimated_dropoff_time - earliest_time_to_dest ===> the time added to him because he used our services, instead of driving a private car)
             # There shouldn't be any passengers with None as their estimated_dropoff_time, but checking to make sure, as if it is none, it could damage our calculation.
-            delay_of_passengers_of_v = datetime.timedelta(seconds=0)
+            delay_of_passengers_of_v = datetime.timedelta(seconds=0) #TODO Why is this = 0 ?
+
             for p in v.passengers:
                 if p.estimated_dropoff_time is not None:
                     delay_of_passengers_of_v += p.estimated_dropoff_time - p.earliest_time_to_dest

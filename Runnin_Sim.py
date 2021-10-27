@@ -23,7 +23,7 @@ Param:
 Return:
 @ v_list : list of new vehicles
 """
-def init_ny_vehicles(num_of_vehicles):
+def init_ny_vehicles(num_of_vehicles,current_time):
     # Open a log for the run.
     #logging.basicConfig(level=logging.INFO,filename='or_'+str(datetime.datetime.now()).replace(':', '_')+'.log')
     # Basic useage example :  logging.INFO('This will be logged)
@@ -31,7 +31,7 @@ def init_ny_vehicles(num_of_vehicles):
     v_start_ids = [42446021, 42442463, 3099327950, 42440022, 42430263, 42434340]
     v_list = []
     for i in range(0, num_of_vehicles):
-        v = Vehicle.Vehicle(v_start_ids[i % (len(v_start_ids))])
+        v = Vehicle.Vehicle(v_start_ids[i % (len(v_start_ids))],time=current_time)
         v_list.append(v)
     return v_list
 
@@ -98,10 +98,11 @@ def list_of_csv_rows(requests_csv_path):
 
 
 def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, starting_time=None):
+    curr_time = str_to_time(starting_time)
     # Virtual vehicle for algorithm purpose.
-    virtual_v = Vehicle.Vehicle(0)
+    virtual_v = Vehicle.Vehicle(0,curr_time)
 
-    v_list = init_ny_vehicles(num_of_vehicles)
+    v_list = init_ny_vehicles(num_of_vehicles,current_time=curr_time)
 
 
     # Creating Shortest paths costs dictionary to hold those val's.
@@ -127,12 +128,11 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
         rv = RV_graph.RV_graph(requests_list=epoch, vehicle_list=v_list, virtual_vehicle=virtual_v, map_graph=map_graph, current_time=curr_time, spc_dict=spc_dict)
         rtv = RTV_graph.RTV_graph(rv_graph=rv, spc_dict=spc_dict, map_graph=map_graph, current_time=curr_time) # TODO Check if current time needed as well
         greedy = Greedy_assignment.Greedy_assingment(rtv)
+        # TODO : here we need to assigning trips to vihecles
+        # Last operation in each epoch.
         for v in v_list:
             v.clear_rv_after_epoch()
     print('It is alive!')
-
-
-
 
 """
 This are function for testing area
@@ -201,7 +201,7 @@ def Running_simple_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, 
 if __name__ == '__main__':
     # print('this is main, now lets see...')
     # start_time=datetime.datetime.now()
-    running_ny_sim('clean_2013.csv',10, 1, 30, starting_time='2013-05-05 00:00:00')
+    running_ny_sim('2013_best.csv',10, 1, 3, starting_time='2013-05-05 00:00:00')
     # print('====== is took : '+str(datetime.datetime.now() - start_time))
 
 

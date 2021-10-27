@@ -1,3 +1,5 @@
+import datetime
+
 import  Request
 import RTV_graph
 import Vehicle
@@ -21,10 +23,10 @@ class Greedy_assingment:
    Assuming RTV_graph.tao is a 2dMatrix of type trip
    """
    def __init__(self,rtv_g : RTV_graph):
-      self.r_ok = {} # Set of assigned requests
-      self.v_ok = {} # Set of vehicles with assigned trips
-      self.assigned_tv = {}
-      self.greedy_sum = 0
+      self.r_ok = set() # Set of assigned requests
+      self.v_ok = set() # Set of vehicles with assigned trips
+      self.assigned_tv = set()
+      self.greedy_sum = datetime.timedelta(seconds=0)
 
       # Creating the stack of e(T,v) edges representation.
       stack = []
