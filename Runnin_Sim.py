@@ -129,7 +129,9 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
         rv = RV_graph.RV_graph(requests_list=epoch, vehicle_list=v_list, virtual_vehicle=virtual_v, map_graph=map_graph, current_time=curr_time, spc_dict=spc_dict)
         rtv = RTV_graph.RTV_graph(rv_graph=rv, spc_dict=spc_dict, map_graph=map_graph, current_time=curr_time) # TODO Check if current time needed as well
         greedy = Greedy_assignment.Greedy_assingment(rtv)
-        print('It is alive!')
+        for v in v_list:
+            v.clear_rv_after_epoch()
+    print('It is alive!')
 
 
 

@@ -91,6 +91,8 @@ class RV_graph:
                 returned_value = TripAlgo.travel(v=current_vehicle, R=(current_request,), map_graph=map_graph, spc_dict=spc_dict, current_time=current_time)
                 if returned_value[0] == True:
                     self.graph.add_edge(vehicle_list[i], requests_list[j], weight=returned_value[1])
+                    # Adding request from rv graph , to the vehicles themselves for faster future processing.
+                    vehicle_list[i].add_r_connected_to_me(requests_list[j],returned_value[1])
 
 
 
