@@ -114,7 +114,7 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
     map_graph = ox.add_edge_speeds(map_graph)
     map_graph = ox.add_edge_travel_times(map_graph)
     # Create logger.
-    logging.basicConfig(filename='app.log',level=logging.INFO)
+    #logging.basicConfig(filename='app.log',level=logging.INFO)
     # Example :logging.info('This will get logged to a file')
 
     epochs = epoch_separator(requests_csv_path=csv_path, epoch_len_sec=epoch_len_sec, num_of_epochs=num_of_epochs, starting_time=starting_time,spc_dict=spc_dict, map_graph=map_graph )
