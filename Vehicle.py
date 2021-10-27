@@ -12,7 +12,7 @@ class Vehicle:
     def __init__(self , start_node, passengers=None, time=None):
         self.id = Vehicle.class_counter
         Vehicle.class_counter += 1
-
+        self.rv_to_me = {} # Requests connected to me in the RV graph , use to improve running time. (Must be cleared AFTER EACH EPOCH!)
         if time is not None:
             self.curr_time = time
         else:
@@ -47,6 +47,14 @@ class Vehicle:
         if self.passengers is not None :
             self.passengers.remove(passenger)
         return
+
+    #This metod add a request to 'rv_to_me' dictionary, for rtv usage later.
+    def add_r_connected_to_me(self, r: Request, cost : int):
+        self.rv_to_me[str(r)] = cost
+    def clear_rv_after_epoch(self):
+        self.rv_to_me.clear()
+
+
 
     def __lt__(self, other):
         return self.id < other

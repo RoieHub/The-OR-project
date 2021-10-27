@@ -1,8 +1,6 @@
 import copy
 import datetime
-
 import networkx as nx
-
 import Greedy_assignment
 from roies_util import str_to_time
 import Trip
@@ -63,7 +61,7 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
     ending_time = current_time + datetime.timedelta(seconds=(epoch_len_sec*num_of_epochs))
 
     for r in list_of_rows:
-        if r[1] == 'pickup_datetime':
+        if r[1] == '1':
             continue
         pu_time = str_to_time(r[1])
         if pu_time < current_time: # Not in our Epochs. Ofir - I This is to skip the requests that are before the time from which we want to start the simulation.
@@ -116,7 +114,7 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
     map_graph = ox.add_edge_speeds(map_graph)
     map_graph = ox.add_edge_travel_times(map_graph)
     # Create logger.
-    logging.basicConfig(filename='app.log',level=logging.INFO)
+    #logging.basicConfig(filename='app.log',level=logging.INFO)
     # Example :logging.info('This will get logged to a file')
 
     epochs = epoch_separator(requests_csv_path=csv_path, epoch_len_sec=epoch_len_sec, num_of_epochs=num_of_epochs, starting_time=starting_time,spc_dict=spc_dict, map_graph=map_graph )
@@ -129,7 +127,9 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
         rv = RV_graph.RV_graph(requests_list=epoch, vehicle_list=v_list, virtual_vehicle=virtual_v, map_graph=map_graph, current_time=curr_time, spc_dict=spc_dict)
         rtv = RTV_graph.RTV_graph(rv_graph=rv, spc_dict=spc_dict, map_graph=map_graph, current_time=curr_time) # TODO Check if current time needed as well
         greedy = Greedy_assignment.Greedy_assingment(rtv)
-        print('It is alive!')
+        for v in v_list:
+            v.clear_rv_after_epoch()
+    print('It is alive!')
 
 
 
