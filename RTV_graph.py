@@ -103,8 +103,9 @@ class RTV_graph:
     def algo1(self, v, spc_dict, map_graph, rv_graph, current_time: datetime):
         # algo1()
 
-        requests_connected_to_v = [x[1] for x in rv_graph.graph.edges() if x[0] == v]
-        print("len(requests_connected_to_v) = " + str(len(requests_connected_to_v)))
+        # requests_connected_to_v = [x[1] for x in rv_graph.graph.edges() if x[0] == v]
+        requests_connected_to_v = v.r_connected_to_me
+        # print("len(requests_connected_to_v) = " + str(len(requests_connected_to_v)))
 
         # requests_connected_to_v = []
         # counter = 0
@@ -122,15 +123,23 @@ class RTV_graph:
 
         # In the case of tao_1, all edges connected to v, create a trip
         begining_time = datetime.datetime.now()
-        for r in requests_connected_to_v:
-            # No need to calc the delay by using TripAlgo, as that was already calculated for each requests_connected_to_v.
-            # The fact that the request is connected to v, means that tripAlgo checked it, and returned true, meaning v can take the request.
-            # Also, the delay will be on the edge connecting the request and the vehicle in the RV_graph.
 
-            # The following line gets the weight of the edge from the graph - from all the edges, take the one between v and r, take the weight in it.
-            # This will have to be put in to a list, so we take the first and only value in there, the weight we wanted.
-            weight = [z['weight'] for x, y, z in rv_graph.graph.edges(data=True) if (x == v) & (y == r)][0]
-            taoK.append((Trip.Trip(requests=(r,)), weight))
+
+        for rc in requests_connected_to_v:
+            taoK.append(((Trip.Trip(requests=(rc[0],))), rc[1]))
+
+        # # Old way to creat trips of size 1
+        # for r in requests_connected_to_v:
+        #     # No need to calc the delay by using TripAlgo, as that was already calculated for each requests_connected_to_v.
+        #     # The fact that the request is connected to v, means that tripAlgo checked it, and returned true, meaning v can take the request.
+        #     # Also, the delay will be on the edge connecting the request and the vehicle in the RV_graph.
+        #
+        #     # The following line gets the weight of the edge from the graph - from all the edges, take the one between v and r, take the weight in it.
+        #     # This will have to be put in to a list, so we take the first and only value in there, the weight we wanted.
+        #     weight = [z['weight'] for x, y, z in rv_graph.graph.edges(data=True) if (x == v) & (y == r)][0]
+        #     taoK.append((Trip.Trip(requests=(r,)), weight))
+
+
         ending_time = datetime.datetime.now()
 
         print("Creating Trips of size 1 took this much time = " + str(ending_time-begining_time))
@@ -153,8 +162,8 @@ class RTV_graph:
 
         for r1 in range(len(requests_connected_to_v) - 1):  # for each trip in the previous taoK
             for r2 in range(r1 + 1, len(requests_connected_to_v)):
-                if rv_graph.graph.has_edge(requests_connected_to_v[r1], requests_connected_to_v[r2]):
-                    requests = (requests_connected_to_v[r1], requests_connected_to_v[r2])
+                if rv_graph.graph.has_edge(requests_connected_to_v[r1][0], requests_connected_to_v[r2][0]):
+                    requests = (requests_connected_to_v[r1][0], requests_connected_to_v[r2][0])
                     returned_value = TripAlgo.travel(v, requests, map_graph, spc_dict, current_time=current_time)
                     if returned_value[0] == True:
                         taoK.append((Trip.Trip(requests=requests), returned_value[1]))

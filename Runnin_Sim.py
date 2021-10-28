@@ -61,7 +61,7 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
     ending_time = current_time + datetime.timedelta(seconds=(epoch_len_sec*num_of_epochs))
 
     for r in list_of_rows:
-        if r[1] == '1':
+        if r[1] == '1' or r[1] == 'pickup_datetime':
             continue
         pu_time = str_to_time(r[1])
         if pu_time < current_time: # Not in our Epochs. Ofir - I This is to skip the requests that are before the time from which we want to start the simulation.
@@ -100,9 +100,9 @@ def list_of_csv_rows(requests_csv_path):
 def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, starting_time=None):
     curr_time = str_to_time(starting_time)
     # Virtual vehicle for algorithm purpose.
-    virtual_v = Vehicle.Vehicle(0,curr_time)
+    virtual_v = Vehicle.Vehicle(0, curr_time)
 
-    v_list = init_ny_vehicles(num_of_vehicles,current_time=curr_time)
+    v_list = init_ny_vehicles(num_of_vehicles, current_time=curr_time)
 
 
     # Creating Shortest paths costs dictionary to hold those val's.
@@ -128,7 +128,7 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
         rv = RV_graph.RV_graph(requests_list=epoch, vehicle_list=v_list, virtual_vehicle=virtual_v, map_graph=map_graph, current_time=curr_time, spc_dict=spc_dict)
         rtv = RTV_graph.RTV_graph(rv_graph=rv, spc_dict=spc_dict, map_graph=map_graph, current_time=curr_time) # TODO Check if current time needed as well
         greedy = Greedy_assignment.Greedy_assingment(rtv)
-        # TODO : here we need to assigning trips to vihecles
+        # TODO : here we need to assigning trips to vehicles
         # Last operation in each epoch.
         for v in v_list:
             v.clear_rv_after_epoch()
@@ -201,7 +201,7 @@ def Running_simple_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, 
 if __name__ == '__main__':
     # print('this is main, now lets see...')
     # start_time=datetime.datetime.now()
-    running_ny_sim('2013_best.csv',10, 1, 3, starting_time='2013-05-05 00:00:00')
+    running_ny_sim('2013_best.csv',10, 1, 10, starting_time='2013-05-05 00:00:00')
     # print('====== is took : '+str(datetime.datetime.now() - start_time))
 
 

@@ -37,10 +37,20 @@ def load_pickle(filename, data):
 
 
 if __name__ == '__main__':
+    map_graph = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
+    if 370897167 in map_graph.nodes():
+        print('370897167 in map graph')
+    else:
+        print('370897167 not here bitch')
 
 
+    # G = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
+    #
+    # if 370897167 in G.nodes():
+    #     print('370897167 in graph')
+    # else:
+    #     print('370897167 not in graph')
 
-    G = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
     G = ox.add_edge_speeds(G)
     G = ox.add_edge_travel_times(G)
     # #
