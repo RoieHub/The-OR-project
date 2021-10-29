@@ -53,6 +53,9 @@ if __name__ == '__main__':
 
     G = ox.add_edge_speeds(G)
     G = ox.add_edge_travel_times(G)
+
+
+
     # #
     # start = time.time()
     # path = dict(nx.all_pairs_dijkstra_path(G), weight='travel_times')

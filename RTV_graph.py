@@ -126,7 +126,7 @@ class RTV_graph:
 
 
         for rc in requests_connected_to_v:
-            taoK.append(((Trip.Trip(requests=(rc[0],))), rc[1]))
+            taoK.append(((Trip.Trip(requests=(rc[0],))), rc[1])) #TODO No path , just go there straight so None
 
         # # Old way to creat trips of size 1
         # for r in requests_connected_to_v:
@@ -167,6 +167,7 @@ class RTV_graph:
                     returned_value = TripAlgo.travel(v, requests, map_graph, spc_dict, current_time=current_time)
                     if returned_value[0] == True:
                         taoK.append((Trip.Trip(requests=requests), returned_value[1]))
+                        # NEW taoK.append((Trip.Trip(requests=requests), returned_value[1],returned_value[2]))
 
         ending_time = datetime.datetime.now()
 
@@ -236,6 +237,8 @@ class RTV_graph:
                                 # print("CHECK3 Condition TRUE")
                                 CHECK3_counter+=1
                                 taoK.append((Trip.Trip(new_trip_requests), returned_value[1]))
+                                #NEW taoK.append((Trip.Trip(requests=requests), returned_value[1],returned_value[2]))
+
                             ending_time_CHECK3 = datetime.datetime.now()
                             time_in_CHECK3 += ending_time_CHECK3-begining_time_CHECK3
                             # print("CHECK3 took this much time = " + str(ending_time_CHECK3 - begining_time_CHECK3))

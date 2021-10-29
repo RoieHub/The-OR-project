@@ -96,13 +96,20 @@ def list_of_csv_rows(requests_csv_path):
         csv_file.close()
         return list_of_rows
 
+'''
+def update_v_after_e(assigned_tv , v_list):
+    for assinged in assigned_tv:
+        
+
+    return 0
+'''
 
 def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, starting_time=None):
     curr_time = str_to_time(starting_time)
     # Virtual vehicle for algorithm purpose.
-    virtual_v = Vehicle.Vehicle(0, curr_time)
+    virtual_v = Vehicle.Vehicle(0,curr_time)
 
-    v_list = init_ny_vehicles(num_of_vehicles, current_time=curr_time)
+    v_list = init_ny_vehicles(num_of_vehicles,current_time=curr_time)
 
 
     # Creating Shortest paths costs dictionary to hold those val's.
@@ -115,20 +122,46 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
     map_graph = ox.add_edge_speeds(map_graph)
     map_graph = ox.add_edge_travel_times(map_graph)
     # Create logger.
-    #logging.basicConfig(filename='app.log',level=logging.INFO)
+    logging.basicConfig(filename=str(datetime.datetime.now())+'.log',level=logging.INFO)
     # Example :logging.info('This will get logged to a file')
 
+    #Stats for log
+    rate_of_epoch_sucsess = 0
+    rate_of_run_sucsess = 0
+    logging.info('This run : ST= : '+ starting_time +', epoch_len = '+ str(epoch_len_sec) +' , num of epochs = '+ str(num_of_epochs) + ", num of vehicles = "+ str(num_of_vehicles) +'\n')
+# def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, starting_time=None):
     epochs = epoch_separator(requests_csv_path=csv_path, epoch_len_sec=epoch_len_sec, num_of_epochs=num_of_epochs, starting_time=starting_time,spc_dict=spc_dict, map_graph=map_graph )
-
-    curr_time = str_to_time(starting_time)
     added_time = datetime.timedelta(seconds=epoch_len_sec)
     # Working on each Epoch
-    for epoch in epochs:
+    for count,epoch in enumerate(epochs):
         curr_time += added_time
         rv = RV_graph.RV_graph(requests_list=epoch, vehicle_list=v_list, virtual_vehicle=virtual_v, map_graph=map_graph, current_time=curr_time, spc_dict=spc_dict)
         rtv = RTV_graph.RTV_graph(rv_graph=rv, spc_dict=spc_dict, map_graph=map_graph, current_time=curr_time) # TODO Check if current time needed as well
         greedy = Greedy_assignment.Greedy_assingment(rtv)
         # TODO : here we need to assigning trips to vehicles
+        epoch_set = set(epoch)
+        r_nok = epoch_set-greedy.r_ok # This is set difference , so only unserved requests are here.
+
+        # Update log of this epoch
+        logging.info(
+            'E' + str(count) + ' : ' + str(epoch[0].time_of_request) + ' to ' + str(epoch[-1].time_of_request) + '\n')
+        # Update rate of sucsess
+        rate_of_epoch_sucsess = len(greedy.r_ok) / len(epoch)  # The number of sent requests this epoch
+
+        logging.info('Epoch sucsess rate' +str(rate_of_epoch_sucsess*100)+'%'+'\n')
+
+        if len(r_nok) != 0 and (len(epochs) -1) != count :# If no r to append and this is not the last epoch.
+            epochs[count+1] = list(r_nok) + epochs[count+1] #TODO check validity
+
+        #Update all vehicles with
+        #update_v_after_e(greedy.assigned_tv , v_list) #TODO implement this
+        # update_penalties(r_nok) # TODO what to update?
+
+        #Update log of this epoch
+
+        #logging.info()
+        # What to do with all the data?
+
         # Last operation in each epoch.
         for v in v_list:
             v.clear_rv_after_epoch()
@@ -201,7 +234,7 @@ def Running_simple_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, 
 if __name__ == '__main__':
     # print('this is main, now lets see...')
     # start_time=datetime.datetime.now()
-    running_ny_sim('2013_best.csv',10, 1, 10, starting_time='2013-05-05 00:00:00')
+    running_ny_sim('2013_best.csv',10, 1, 3, starting_time='2013-05-05 00:00:00')
     # print('====== is took : '+str(datetime.datetime.now() - start_time))
 
 
