@@ -1,5 +1,7 @@
 import copy
 import datetime
+
+import networkx
 import networkx as nx
 import Greedy_assignment
 from roies_util import str_to_time
@@ -66,23 +68,65 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
         pu_time = str_to_time(r[1])
         if pu_time < current_time: # Not in our Epochs. Ofir - I This is to skip the requests that are before the time from which we want to start the simulation.
             continue
-        elif pu_time < (current_time+e_len): # Request is in current epoch
-            epoch.append(Request.Request(ori=int(r[2]), dest=int(r[3]), request_time=pu_time, spc_dict=spc_dict, map_graph=map_graph,data_line_id=int(r[0])))
+        elif pu_time < (current_time + e_len):  # Request is in current epoch
+            # Ofir - Next part is to deal with the fact that we get different graphs (Roie and Ofir).
+            # I don't create any Request that has an origin or dest that isn't on the map.
+
+            if not check_node_in_graph(int(r[2])):
+                print("Skipping request with id = " + str(int(r[0])) + ", because origin not in graph. Origin = " + str(
+                    int(r[2])) + ".")
+                continue
+            if not check_node_in_graph(int(r[3])):
+                print("Skipping request with id = " + str(int(r[0])) + ", because dest not in graph. Origin = " + str(
+                    int(r[3])) + ".")
+                continue
+
+            epoch.append(Request.Request(ori=int(r[2]), dest=int(r[3]), request_time=pu_time, spc_dict=spc_dict, map_graph=map_graph, data_line_id=int(r[0])))
+
+            # Ofir - Check if the new request's self.earliest_time_to_dest == self.time_of_request.
+            # That is a sign we should ignore the request (because shortest path between origin and dest couldn't be found)
+
+            if epoch[-1].earliest_time_to_dest == epoch[-1].time_of_request:
+                print("Dropping the request, because earliest_time_to_dest == time_of_request ")
+                epoch.pop()
             continue
-        elif pu_time >= (current_time+e_len) and (current_time+e_len) <= ending_time: # This belongs to a new epoch.
+        elif pu_time >= (current_time + e_len) and (current_time + e_len) <= ending_time:  # This belongs to a new epoch.
             # Append the epoch to epoch_list
             epochs_list.append(copy.copy(epoch))
             # Clear the epoch
             epoch.clear()
             #Update current time
             current_time += e_len
+
+            # This code's purpose - check above comment, in previous elif
+            if not check_node_in_graph(int(r[2])):
+                print("Skipping request with id = " + str(int(r[0])) + ", because origin not in graph. Origin = " + str(int(r[2])) + ".")
+                continue
+            if not check_node_in_graph(int(r[3])):
+                print("Skipping request with id = " + str(int(r[0])) + ", because dest not in graph. Origin = " + str(int(r[3])) + ".")
+                continue
+
+
             epoch.append(Request.Request(ori=int(r[2]), dest=int(r[3]), request_time=pu_time, spc_dict=spc_dict, map_graph=map_graph,data_line_id=int(r[0])))
+
+            # This code's purpose - check above comment, in previous elif
+            if epoch[-1].earliest_time_to_dest == epoch[-1].time_of_request:
+                print("Dropping the request, because earliest_time_to_dest == time_of_request ")
+                epoch.pop()
+
             continue
         elif pu_time >= ending_time:
             break
         else :
             raise Exception("Sorry, problem with line " + str(r))
     return epochs_list
+
+
+def check_node_in_graph(node_number: int, map_graph: networkx.Graph):
+    if node_number in map_graph.nodes:
+        return True
+    else:
+        return False
 
 """
 This function reads a file of "requests and returnes a list of rows from the csv"
@@ -122,7 +166,9 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
     map_graph = ox.add_edge_speeds(map_graph)
     map_graph = ox.add_edge_travel_times(map_graph)
     # Create logger.
-    logging.basicConfig(filename=str(datetime.datetime.now())+'.log',level=logging.INFO)
+    # logging.basicConfig(filename=str(datetime.datetime.now())+'.log',level=logging.INFO)
+    logging.basicConfig(filename=str(datetime.datetime.now()).replace(':', '_')+'.log', level=logging.INFO) #Difference from above line makes it work on Windows - can't use ':' in filename in windows
+
     # Example :logging.info('This will get logged to a file')
 
     #Stats for log
@@ -234,7 +280,7 @@ def Running_simple_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, 
 if __name__ == '__main__':
     # print('this is main, now lets see...')
     # start_time=datetime.datetime.now()
-    running_ny_sim('2013_best.csv',10, 1, 3, starting_time='2013-05-05 00:00:00')
+    running_ny_sim('2013_best.csv',10, 1, 10, starting_time='2013-05-05 00:00:00')
     # print('====== is took : '+str(datetime.datetime.now() - start_time))
 
 

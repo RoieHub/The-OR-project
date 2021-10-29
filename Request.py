@@ -42,7 +42,10 @@ class Request:
         try:
             self.earliest_time_to_dest = request_time + datetime.timedelta(seconds=(spc_dict[ori][1][dest]))
         except:
-            print("failed to set request data id: " +str(data_line_id)+"self.earliest_time_to_dest! origin = " + str(ori) + ", dest = " + str(dest) +".")
+            print("failed to set request data id: " + str(data_line_id) + " self.earliest_time_to_dest! origin = " + str(ori) + ", dest = " + str(dest)
+                + ". self.earliest_time_to_dest will be set to self.time_of_request, and this request should be dropped from the epoch (in the epoch_separator).")
+            self.earliest_time_to_dest = self.time_of_request
+
         self.latest_time_to_dropoff = self.earliest_time_to_dest + Request.travel_delay
     def __lt__(self, other):
         return self.id < other
