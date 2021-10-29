@@ -11,7 +11,20 @@ import Vehicle
 def two_trips_to_unique_list(trip1, trip2):
     # Turn to set to not have a request twice in the group.
     # Turn back to list so we can use the sort() function of list
-    return list(set(trip1.requests + trip2.requests))
+
+    # return list(set(trip1.requests + trip2.requests))
+
+    hashes = {}
+    combined_list = trip1.requests + trip2.requests
+    combined_list_no_repeating_requests = []
+    for r in combined_list:
+        r_hash = hash(r.id)
+        # r_hash = r.__hash__()
+        if r_hash not in hashes:
+            hashes[r_hash] = 1
+            combined_list_no_repeating_requests.append(r)
+    return combined_list_no_repeating_requests
+
 
 
 class RTV_graph:
@@ -194,6 +207,8 @@ class RTV_graph:
 
         for k in range(3, Vehicle.Vehicle.max_capacity - len(v.passengers) + 1):
             begining_time = datetime.datetime.now()
+            time_spent_creating_new_trip_requests = datetime.timedelta(seconds=0)
+            time_until_CHECK2 = datetime.timedelta(seconds=0)
             time_in_CHECK2 = datetime.timedelta(seconds=0)
             time_in_CHECK3 = datetime.timedelta(seconds=0)
             CHECK2_counter = 0
@@ -202,15 +217,23 @@ class RTV_graph:
             for t1 in range(len(v_taos[-1]) - 1):
                 trip1 = v_taos[-1][t1][0]
                 for t2 in range(t1 + 1, len(v_taos[-1])):
+                    begining_time_before_CHECK2 = datetime.datetime.now()
                     trip2 = v_taos[-1][t2][0]
+
                     # We have the 2 trips we want to check, now we check CHECK 1
+                    begining_time_before_creating_new_trip_requests = datetime.datetime.now()
                     new_trip_requests = two_trips_to_unique_list(trip1, trip2)
+                    ending_time_before_creating_new_trip_requests = datetime.datetime.now()
+                    time_spent_creating_new_trip_requests += ending_time_before_creating_new_trip_requests - begining_time_before_creating_new_trip_requests
+
                     if len(new_trip_requests) == k:
                         new_trip_requests.sort()  # We sort the trip, to make sure that later, when checking if a sub_trip exists within taok-1 (v_taos[-1]), we will not miss because of ordering
                         new_trip_requests = tuple(new_trip_requests)  # make it to a tuple so make sure it isn't changed
                         # CHECK 2
                         condition = True
                         # The above boolean variable is used to check if the condition CHECK 2 is true or not. It will change to false in case it doens't, and we break out of the for loop to not waste time.
+                        ending_time_before_CHECK2 = datetime.datetime.now()
+                        time_until_CHECK2 += ending_time_before_CHECK2-begining_time_before_CHECK2
                         begining_time_CHECK2 = datetime.datetime.now()
                         for r in new_trip_requests:
                             sub_trip_requests = list(
@@ -242,9 +265,13 @@ class RTV_graph:
                             ending_time_CHECK3 = datetime.datetime.now()
                             time_in_CHECK3 += ending_time_CHECK3-begining_time_CHECK3
                             # print("CHECK3 took this much time = " + str(ending_time_CHECK3 - begining_time_CHECK3))
+                    else:
+                        ending_time_before_CHECK2 = datetime.datetime.now()
+                        time_until_CHECK2 += ending_time_before_CHECK2 - begining_time_before_CHECK2
 
 
             print("CHECK2_counter = " + str(CHECK2_counter) + ", CHECK3_counter = " + str(CHECK3_counter))
+            print("time_until_CHECK2 = " + str(time_until_CHECK2) + ", of which, time_spent_creating_new_trip_requests = " + str(time_spent_creating_new_trip_requests))
             print("time_in_CHECK2 = " + str(time_in_CHECK2) + " , time_in_CHECK3 = " + str(time_in_CHECK3))
             ending_time = datetime.datetime.now()
             print("Creating Trips of size " + str(k) + " took this much time = " + str(ending_time - begining_time))
@@ -253,12 +280,12 @@ class RTV_graph:
             v_taos.append(copy.copy(taoK))
             taoK = []
 
-            begining_time = datetime.datetime.now()
+            # begining_time = datetime.datetime.now()
             taoK_minus1_hashes_dict = {}
             Trips_Of_Size_K_minus1 = [x[0] for x in v_taos[-1]]
             for t in Trips_Of_Size_K_minus1:
                 taoK_minus1_hashes_dict[t.__hash__()] = 1
-            ending_time = datetime.datetime.now()
+            # ending_time = datetime.datetime.now()
             # print("Creating taoK_minus1_hashes_dict took this much time = " + str(ending_time-begining_time))
 
         return v_taos
