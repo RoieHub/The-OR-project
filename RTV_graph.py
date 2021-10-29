@@ -259,6 +259,6 @@ class RTV_graph:
             for t in Trips_Of_Size_K_minus1:
                 taoK_minus1_hashes_dict[t.__hash__()] = 1
             ending_time = datetime.datetime.now()
-            print("Creating taoK_minus1_hashes_dict took this much time = " + str(ending_time-begining_time))
+            # print("Creating taoK_minus1_hashes_dict took this much time = " + str(ending_time-begining_time))
 
         return v_taos

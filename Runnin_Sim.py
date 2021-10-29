@@ -72,11 +72,11 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
             # Ofir - Next part is to deal with the fact that we get different graphs (Roie and Ofir).
             # I don't create any Request that has an origin or dest that isn't on the map.
 
-            if not check_node_in_graph(int(r[2])):
+            if not check_node_in_graph(int(r[2]), map_graph):
                 print("Skipping request with id = " + str(int(r[0])) + ", because origin not in graph. Origin = " + str(
                     int(r[2])) + ".")
                 continue
-            if not check_node_in_graph(int(r[3])):
+            if not check_node_in_graph(int(r[3]), map_graph):
                 print("Skipping request with id = " + str(int(r[0])) + ", because dest not in graph. Origin = " + str(
                     int(r[3])) + ".")
                 continue
@@ -99,10 +99,10 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
             current_time += e_len
 
             # This code's purpose - check above comment, in previous elif
-            if not check_node_in_graph(int(r[2])):
+            if not check_node_in_graph(int(r[2]), map_graph):
                 print("Skipping request with id = " + str(int(r[0])) + ", because origin not in graph. Origin = " + str(int(r[2])) + ".")
                 continue
-            if not check_node_in_graph(int(r[3])):
+            if not check_node_in_graph(int(r[3]), map_graph):
                 print("Skipping request with id = " + str(int(r[0])) + ", because dest not in graph. Origin = " + str(int(r[3])) + ".")
                 continue
 
@@ -280,7 +280,7 @@ def Running_simple_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, 
 if __name__ == '__main__':
     # print('this is main, now lets see...')
     # start_time=datetime.datetime.now()
-    running_ny_sim('2013_best.csv',10, 1, 10, starting_time='2013-05-05 00:00:00')
+    running_ny_sim('2013_best.csv',10, 1, 30, starting_time='2013-05-05 00:00:00')
     # print('====== is took : '+str(datetime.datetime.now() - start_time))
 
 
