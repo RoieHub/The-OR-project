@@ -53,7 +53,7 @@ class RTV_graph:
             begining_time = datetime.datetime.now()
             v_taos = self.algo1(v,spc_dict=spc_dict, map_graph=map_graph, rv_graph=rv_graph, current_time=current_time)
             ending_time = datetime.datetime.now()
-            print("Ended algo1 for vehicle number " + str(vehicle_counter) + ". Time taken = " + str(ending_time-begining_time))
+            print("Ended algo1 for vehicle number " + str(vehicle_counter) + ". Time taken = " + str(ending_time-begining_time) +"\n\n")
             vehicle_counter += 1
             # Now merge all of v_taos entries to main tao.
 
@@ -275,7 +275,7 @@ class RTV_graph:
             print("time_in_CHECK2 = " + str(time_in_CHECK2) + " , time_in_CHECK3 = " + str(time_in_CHECK3))
             ending_time = datetime.datetime.now()
             print("Creating Trips of size " + str(k) + " took this much time = " + str(ending_time - begining_time))
-            print("Found " + str(len(taoK)) + " trips of size " + str(k))
+            print("Found " + str(len(taoK)) + " trips of size " + str(k) + "\n")
 
             v_taos.append(copy.copy(taoK))
             taoK = []
