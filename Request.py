@@ -47,6 +47,8 @@ class Request:
             self.earliest_time_to_dest = self.time_of_request
 
         self.latest_time_to_dropoff = self.earliest_time_to_dest + Request.travel_delay
+        self.picked_up = False
+
     def __lt__(self, other):
         return self.id < other
 
