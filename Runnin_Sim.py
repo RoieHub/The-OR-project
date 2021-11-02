@@ -140,13 +140,70 @@ def list_of_csv_rows(requests_csv_path):
         csv_file.close()
         return list_of_rows
 
-'''
-def update_v_after_e(assigned_tv , v_list):
-    for assinged in assigned_tv:
-        
+"""
+This function used in the end of epoch ,to check if the vehicle v is assinged a new trip by greedy algo.
 
-    return 0
-'''
+"""
+#def is_assinged_new_trip(v,assinged_tv):
+def update_v_lcoation(v,path,curr_time,epoch_len,spc_dict):
+    # PAT^H IS (r_i,p/d)
+    # Find location
+    # time_spent is a time accumulator that we already spent traveling on the path.
+    time_spent = datetime.timedelta(seconds=0)
+    # Iterating over each stop in the v path.
+    # as long as we can reach the next stop within our time limit (epoch length) , we 'go' to the next stop , updating current position
+    for next_stop_tuple in path:
+        next_stop_id = 0
+        pickup = False
+        # This if updates 'next_stop_id' , if its 'p' its the pickup node of request , else its the dropoff node of request.
+        if next_stop_tuple[1] == 'p': # This is the pickup node
+            next_stop_id = next_stop_tuple[0].origin
+            pickup = True
+        else:
+            next_stop_id = next_stop_tuple[0].destination
+            pickup = False
+        time_to_next_stop = datetime.timedelta(seconds=spc_dict[v.curr_pos][1][next_stop_id])
+        if time_to_next_stop <= (epoch_len - time_spent): # If we get to this stop within our epoch time limit.
+            v.curr_pos = next_stop_id # update v current possiotion as the next stop.
+            time_spent += time_to_next_stop # accumulate the time spent going until here.
+            if pickup:
+                v.add_passengers(next_stop_tuple[0])
+                next_stop_tuple[0].update_actual_pick_up_time(curr_time+time_spent)
+
+        else :
+            path_to_last_stop = spc_dict[v.curr_pos][0][next_stop_id]
+            while time_spent < epoch_len :
+
+            break
+
+
+
+
+
+
+def update_v_after_e(v_list,v_ok: set,assigned_tv:set,curr_time , epoch_len, spc_dict):
+   # First we create a set of vehicles with no new trips assigned.
+   v_set = set(v_list)
+   v_nok = v_set-v_ok
+   # Update the location of vehicles with no new assignments.
+   for v in v_nok:
+        if v.passengers :# This checks if current passengers list is empty https://flexiple.com/check-if-list-is-empty-python/
+            print('idle vehicle' + str(v)) # TODO something with idel.
+        else:
+
+   # Update the location of vehicles with new assignments.
+   for assi in assigned_tv:
+       v = assi[1]
+       path = assi[3]
+       update_v_lcoation(v,path,curr_time,epoch_len)
+
+
+
+       # UPdate the location somehow
+
+
+   #def __init__(self, requests_list: Tuple[Request.Request, ...], vehicle_list: Tuple[Vehicle.Vehicle, ...], virtual_vehicle: Vehicle, map_graph: nx.Graph, current_time: datetime ,spc_dic
+
 
 def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, starting_time=None):
     curr_time = str_to_time(starting_time)
@@ -200,7 +257,7 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
             epochs[count+1] = list(r_nok) + epochs[count+1] #TODO check validity
 
         #Update all vehicles with
-        #update_v_after_e(greedy.assigned_tv , v_list) #TODO implement this
+        update_v_after_e(v_list,greedy.v_ok,greedy.assigned_tv,curr_time , added_time, spc_dict)
         # update_penalties(r_nok) # TODO what to update?
 
         #Update log of this epoch

@@ -67,7 +67,7 @@ class Request:
     def __ge__(self, other):
         return self.id >= other
 
-    def update_actual_pick_up_time(self, puTime):
+    def update_actual_pick_up_time(self, puTime: datetime.datetime):
         self.actual_pick_up_time = puTime
         # !!!!!!!!!!!!!!Request should now change because its picked up!!!!!
         return
