@@ -6,8 +6,8 @@ import spc_dict_caregiver
 
 class Request:
     class_counter = 0
-    max_waiting_time = datetime.timedelta(minutes=1)
-    travel_delay = datetime.timedelta(minutes=2) # Max time that can be added to when the person making the request will reach their destination.
+    max_waiting_time = datetime.timedelta(minutes=5)
+    travel_delay = datetime.timedelta(minutes=10) # Max time that can be added to when the person making the request will reach their destination.
                                                   # This is used for calculating his max overall delay (i.e. if he had taken a private taxi when he made the request, travel_delay is how much time will verall be added to his delay, including waiting)
 
     """"id: int
@@ -38,7 +38,7 @@ class Request:
         self.actual_pick_up_time = None
         self.estimated_dropoff_time = None
         # Should be None until assigned to someone. We rely on this in the assignment code!
-        spc_dict_caregiver.spc_dict_caregiver(spc_dict,map_graph,ori)
+        spc_dict_caregiver.spc_dict_caregiver(spc_dict, map_graph, ori)
         try:
             self.earliest_time_to_dest = request_time + datetime.timedelta(seconds=(spc_dict[ori][1][dest]))
         except:

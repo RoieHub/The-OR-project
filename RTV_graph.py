@@ -184,7 +184,7 @@ class RTV_graph:
                     requests = (requests_connected_to_v[r1][0], requests_connected_to_v[r2][0])
                     returned_value = TripAlgo.travel(v, requests, map_graph, spc_dict, current_time=current_time)
                     if returned_value[0] == True:
-                        taoK.append((Trip.Trip(requests=requests), returned_value[1]), returned_value[2])
+                        taoK.append((Trip.Trip(requests=requests), returned_value[1], returned_value[2]))
                         # NEW taoK.append((Trip.Trip(requests=requests), returned_value[1],returned_value[2]))
 
         ending_time = datetime.datetime.now()

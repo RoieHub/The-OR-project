@@ -25,7 +25,7 @@ class Greedy_assingment:
    def __init__(self,rtv_g : RTV_graph):
       self.r_ok = set() # Set of assigned requests
       self.v_ok = set() # Set of vehicles with assigned trips
-      self.assigned_tv = set()
+      self.assigned_tv = []
       self.greedy_sum = datetime.timedelta(seconds=0)
 
       # Creating the stack of e(T,v) edges representation.
@@ -56,7 +56,7 @@ class Greedy_assingment:
                   self.r_ok.add(r)
                self.v_ok.add(trip_tuple[1])
                self.greedy_sum += trip_tuple[2]
-               self.assigned_tv.add((trip_tuple))
+               self.assigned_tv.append(trip_tuple)
 
    """
    This method checks if it is valid to assign a certain trip.

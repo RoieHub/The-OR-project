@@ -4,6 +4,7 @@ import datetime
 import networkx
 import networkx as nx
 import Greedy_assignment
+import spc_dict_caregiver
 from roies_util import str_to_time
 import Trip
 import Vehicle
@@ -145,7 +146,7 @@ This function used in the end of epoch ,to check if the vehicle v is assinged a 
 
 """
 #def is_assinged_new_trip(v,assinged_tv):
-def update_v_lcoation(v,path,curr_time,epoch_len,spc_dict):
+def update_v_location(v, path, curr_time, epoch_len, spc_dict, map_graph):
     # PAT^H IS (r_i,p/d)
     # Find location
     # time_spent is a time accumulator that we already spent traveling on the path.
@@ -170,18 +171,31 @@ def update_v_lcoation(v,path,curr_time,epoch_len,spc_dict):
                 v.add_passengers(next_stop_tuple[0])
                 next_stop_tuple[0].update_actual_pick_up_time(curr_time+time_spent)
 
-        else :
-            path_to_last_stop = spc_dict[v.curr_pos][0][next_stop_id]
-            while time_spent < epoch_len :
+        else:
+            # "path_to_last_stop" is the path to the next stop on the path given to the function, and we can't reach that stop before the time limit (the next epoch ends)
+            path_to_last_stop = copy.copy(spc_dict[v.curr_pos][0][next_stop_id]) #copy so we don't change spc_dict
+            path_to_last_stop.pop(0) #pop the first because that paths in spc_dict always start with the origin node
 
-            break
+            # Instead of using spc_dict here, we can use the travel_time value that exists between each neighboring nodes.
+            # That value already exists, as we always first run "add_edge_speeds()" and "add_edge_travel_times()" at the beginning of the simulation.
+            # This way we save the time spc_dict_caregiver would spend calculating the paths and times from v.curr_pos to all of the graph.
+            time_to_next_middle_stop = map_graph[v.curr_pos][path_to_last_stop[0]][0]['travel_time']
+
+            while time_spent + time_to_next_middle_stop <= epoch_len:
+                v.curr_pos = path_to_last_stop.pop(0)
+                time_spent += time_to_next_middle_stop
+
+                time_to_next_middle_stop = map_graph[v.curr_pos][path_to_last_stop[0]][0]['travel_time']
+
+
+            break #TODO: make sure this breaks the above for loop
 
 
 
 
 
 
-def update_v_after_e(v_list,v_ok: set,assigned_tv:set,curr_time , epoch_len, spc_dict):
+def update_v_after_e(v_list, v_ok: set, assigned_tv: list, curr_time, epoch_len, spc_dict, map_graph):
    # First we create a set of vehicles with no new trips assigned.
    v_set = set(v_list)
    v_nok = v_set-v_ok
@@ -189,13 +203,13 @@ def update_v_after_e(v_list,v_ok: set,assigned_tv:set,curr_time , epoch_len, spc
    for v in v_nok:
         if v.passengers :# This checks if current passengers list is empty https://flexiple.com/check-if-list-is-empty-python/
             print('idle vehicle' + str(v)) # TODO something with idel.
-        else:
+        # TODO: else:
 
    # Update the location of vehicles with new assignments.
    for assi in assigned_tv:
        v = assi[1]
        path = assi[3]
-       update_v_lcoation(v,path,curr_time,epoch_len)
+       update_v_location(v, path, curr_time, epoch_len, spc_dict, map_graph)
 
 
 
@@ -257,7 +271,7 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
             epochs[count+1] = list(r_nok) + epochs[count+1] #TODO check validity
 
         #Update all vehicles with
-        update_v_after_e(v_list,greedy.v_ok,greedy.assigned_tv,curr_time , added_time, spc_dict)
+        update_v_after_e(v_list, greedy.v_ok, greedy.assigned_tv, curr_time, added_time, spc_dict, map_graph)
         # update_penalties(r_nok) # TODO what to update?
 
         #Update log of this epoch
@@ -337,7 +351,7 @@ def Running_simple_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, 
 if __name__ == '__main__':
     # print('this is main, now lets see...')
     # start_time=datetime.datetime.now()
-    running_ny_sim('requests.csv',10, 1, 3, starting_time='2013-05-05 00:00:01')
+    running_ny_sim('requests.csv', 10, 1, 30, starting_time='2013-05-05 00:00:01')
     # print('====== is took : '+str(datetime.datetime.now() - start_time))
 
 
