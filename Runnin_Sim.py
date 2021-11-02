@@ -280,7 +280,7 @@ def Running_simple_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, 
 if __name__ == '__main__':
     # print('this is main, now lets see...')
     # start_time=datetime.datetime.now()
-    running_ny_sim('requests.csv',10, 1, 30, starting_time='2013-05-05 00:00:00')
+    running_ny_sim('requests.csv',10, 1, 3, starting_time='2013-05-05 00:00:01')
     # print('====== is took : '+str(datetime.datetime.now() - start_time))
 
 

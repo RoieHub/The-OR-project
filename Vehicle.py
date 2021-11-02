@@ -6,13 +6,14 @@ import Request
 """
 class Vehicle:
     class_counter = 0
-    max_capacity = 5
+    max_capacity = 10
 
     #TODO - the passengers parameter might be unused in all cases - when are we construting a vehicle and telling it - "you already have these passengers on you"?
     def __init__(self , start_node, passengers=None, time=None):
         self.id = Vehicle.class_counter
         Vehicle.class_counter += 1
         self.r_connected_to_me = [] # Requests connected to me in the RV graph , use to improve running time. (Must be cleared AFTER EACH EPOCH!)
+                                    # Will be made of triplets - The request, cost of path found for it (including just that request AND passengers already on the vehicle), and the path found for it.
         if time is not None:
             self.curr_time = time
         else:
@@ -49,9 +50,9 @@ class Vehicle:
         return
 
     #This metod add a request to 'rv_to_me' dictionary, for rtv usage later.
-    def add_r_connected_to_me(self, r: Request, cost : int):
+    def add_r_connected_to_me(self, r: Request, cost: int, path: list[tuple[Request, str]]):
         # self.r_connected_to_me[str(r)] = cost
-        self.r_connected_to_me.append([r, cost])
+        self.r_connected_to_me.append([r, cost, path])
     def clear_rv_after_epoch(self):
         self.r_connected_to_me.clear()
 

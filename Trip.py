@@ -5,6 +5,7 @@ A trip may have one or more candidate vehicles for  execution.
 """
 from typing import Tuple
 
+import Request
 import Vehicle
 
 
@@ -18,7 +19,7 @@ class Trip:
         self.id = Trip.class_counter
         Trip.class_counter +=1
         self.requests = requests
-        self.v_candidates = []
+        self.v_candidates = [] #Triplets of 1. Which vehicle can take it, 2. Cost for that vehicle to take it, 3. The path for that vehicle, including the all the passengers on it. That will be pairs of request and if it is pickup or dropoff.
 
     ''' - not needed. A trip will be created with it's requests when it is created, and they shouldn't be changed
     def add_request(self,req):
@@ -26,8 +27,8 @@ class Trip:
         return
     '''
 
-    def add_vehicle_candidate(self, VC: Tuple[Vehicle.Vehicle, int]): #VC = vehicle cost
-        self.v_candidates.append(VC)
+    def add_vehicle_candidate(self, VCP: Tuple[Vehicle.Vehicle, int, list[tuple[Request, str]]]): #VCP = Vehicle Cost Path
+        self.v_candidates.append(VCP)
 
     def __repr__(self):
         # return ', '.join(self.requests)

@@ -39,7 +39,7 @@ class Greedy_assingment:
          # Extract (V,cost) tuple from each trip.
          vc_tuples.clear() # clears the container from the prev vc.
          for t in rtv_g.tao[k] : # For each trip
-            for vc in t.v_candidates : # Append the candidate (v,cost) to vc_tuples.
+            for vc in t.v_candidates : # Append the candidate (v, cost, path) to vc_tuples.
                vc_tuples.append((t,)+vc) # This is tuple concatenate so it will look as (t.id,v,cost)
 
          # Sort the vc by cost.
@@ -48,7 +48,7 @@ class Greedy_assingment:
          for vc in reversed(vc_tuples):
             stack.append(vc)
 
-         # At this point , our stack is filled with (trip , v , cost ) of size k
+         # At this point, our stack is filled with (trip, v, cost, path) of size k
          while len(stack) > 0:
             trip_tuple = stack.pop()
             if self.unassinged_trip(trip_tuple):

@@ -72,7 +72,7 @@ class RTV_graph:
             # So, we set the variable "delay_of_passengers_of_v" to 0
             # and for each passenger on the vehicle, we calc his expected delay (it is estimated_dropoff_time - earliest_time_to_dest ===> the time added to him because he used our services, instead of driving a private car)
             # There shouldn't be any passengers with None as their estimated_dropoff_time, but checking to make sure, as if it is none, it could damage our calculation.
-            delay_of_passengers_of_v = datetime.timedelta(seconds=0) #TODO Why is this = 0 ?
+            delay_of_passengers_of_v = datetime.timedelta(seconds=0)
 
             for p in v.passengers:
                 if p.estimated_dropoff_time is not None:
@@ -92,14 +92,14 @@ class RTV_graph:
 
                     if trip is not None:
                         self.graph.add_edge(trip, v, weight=(v_taos[k][t][1] - delay_of_passengers_of_v), type="tv")
-                        trip.add_vehicle_candidate((v, (v_taos[k][t][1] - delay_of_passengers_of_v)))
+                        trip.add_vehicle_candidate((v, (v_taos[k][t][1] - delay_of_passengers_of_v), v_taos[k][t][2])) #v_taos[k][t][2] = the path the vehicle will take to do this trip + any passengers already on him
                     else:  # In case the trip isn't in the graph yet, we need to add it and edges from it's rides to it and from it to the current vehicle, as it can do this trip
                         # Get the new trip object
                         new_trip = v_taos[k][t][0]
 
                         # Add to the new trip the vehicle as a candidate, along with the cost associated with it.
                         # Then add the trip to the variable tao.
-                        new_trip.add_vehicle_candidate((v, (v_taos[k][t][1] - delay_of_passengers_of_v)))
+                        new_trip.add_vehicle_candidate((v, (v_taos[k][t][1] - delay_of_passengers_of_v), v_taos[k][t][2])) #v_taos[k][t][2] = the path the vehicle will take to do this trip + any passengers already on him
                         self.tao[k].append(new_trip)
 
                         # Add the new trip to the graph, as a node of the graph.
@@ -132,14 +132,19 @@ class RTV_graph:
         v_taos = []
         # All the taos, the groups of trips the current vehicle can make. The groups in it are groups of trips of the same size.
         # Will be later added, or merged, to the tao of the whole RTV_graph
-        taoK = []  # current_tao. from tao_1 to tao_i, where i is the max amount of people the vehicle can have on board
+        taoK = []  # current_tao. from tao_1 to tao_i, where i is the max amount of people the vehicle can have on board.
+        # It is constructed of triplets, that are -
+        # 1. The trip
+        # 2. The cost of the trip
+        # 3. The order in which the requests in the trip, and also the passengers on the vehicle if it has any, will be pickedup and droppedoff.
+        #       That will be using pairs, consisting of [0] = the request, [1] = 'p'/'d', depending on wether it is pickup or dropoff of that person
 
         # In the case of tao_1, all edges connected to v, create a trip
         begining_time = datetime.datetime.now()
 
 
         for rc in requests_connected_to_v:
-            taoK.append(((Trip.Trip(requests=(rc[0],))), rc[1])) #TODO No path , just go there straight so None
+            taoK.append(((Trip.Trip(requests=(rc[0],))), rc[1], rc[2])) # To see why these values are appended together to taoK, see above comment about how taoK should be constructed
 
         # # Old way to creat trips of size 1
         # for r in requests_connected_to_v:
@@ -179,7 +184,7 @@ class RTV_graph:
                     requests = (requests_connected_to_v[r1][0], requests_connected_to_v[r2][0])
                     returned_value = TripAlgo.travel(v, requests, map_graph, spc_dict, current_time=current_time)
                     if returned_value[0] == True:
-                        taoK.append((Trip.Trip(requests=requests), returned_value[1]))
+                        taoK.append((Trip.Trip(requests=requests), returned_value[1]), returned_value[2])
                         # NEW taoK.append((Trip.Trip(requests=requests), returned_value[1],returned_value[2]))
 
         ending_time = datetime.datetime.now()
@@ -259,7 +264,7 @@ class RTV_graph:
                             if returned_value[0] == True:
                                 # print("CHECK3 Condition TRUE")
                                 CHECK3_counter+=1
-                                taoK.append((Trip.Trip(new_trip_requests), returned_value[1]))
+                                taoK.append((Trip.Trip(new_trip_requests), returned_value[1], returned_value[2]))
                                 #NEW taoK.append((Trip.Trip(requests=requests), returned_value[1],returned_value[2]))
 
                             ending_time_CHECK3 = datetime.datetime.now()
