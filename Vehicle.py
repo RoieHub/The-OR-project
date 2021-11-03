@@ -41,13 +41,13 @@ class Vehicle:
         self.curr_pos = pos
         return
 
-    def add_passenger(self,req):
+    def add_passenger(self, req):
         self.passengers.append(req)
         return
 
     #This method removes the passenger object given to the func
-    def rm_passenger(self, passenger):
-        if self.passengers is not None :
+    def remove_passenger(self, passenger):
+        if self.passengers is not None:
             self.passengers.remove(passenger)
         return
 

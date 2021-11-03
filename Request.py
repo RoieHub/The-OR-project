@@ -6,8 +6,8 @@ import spc_dict_caregiver
 
 class Request:
     class_counter = 0
-    max_waiting_time = datetime.timedelta(minutes=5)
-    travel_delay = datetime.timedelta(minutes=10) # Max time that can be added to when the person making the request will reach their destination.
+    max_waiting_time = datetime.timedelta(minutes=2)
+    travel_delay = datetime.timedelta(minutes=5) # Max time that can be added to when the person making the request will reach their destination.
                                                   # This is used for calculating his max overall delay (i.e. if he had taken a private taxi when he made the request, travel_delay is how much time will verall be added to his delay, including waiting)
 
     """"id: int
@@ -37,6 +37,8 @@ class Request:
         self.latest_time_to_pick_up = self.time_of_request + Request.max_waiting_time
         self.actual_pick_up_time = None
         self.estimated_dropoff_time = None
+        self.actual_dropoff_time = None
+
         # Should be None until assigned to someone. We rely on this in the assignment code!
         spc_dict_caregiver.spc_dict_caregiver(spc_dict, map_graph, ori)
         try:
@@ -47,7 +49,7 @@ class Request:
             self.earliest_time_to_dest = self.time_of_request
 
         self.latest_time_to_dropoff = self.earliest_time_to_dest + Request.travel_delay
-        self.picked_up = False
+
 
     def __lt__(self, other):
         return self.id < other
@@ -72,8 +74,12 @@ class Request:
         # !!!!!!!!!!!!!!Request should now change because its picked up!!!!!
         return
 
-    def update_dropoff_time(self,dfTime):
+    def update_estimated_dropoff_time(self, dfTime):
         self.estimated_dropoff_time = dfTime
+        return
+
+    def update_actual_dropoff_time(self, dfTime):
+        self.actual_dropoff_time = dfTime
         return
 
     # Time to dest is T(Origin,Destination) time, we add it to time of request and get the earliest time to dest.

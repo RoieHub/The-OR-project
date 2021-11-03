@@ -38,6 +38,8 @@ def load_pickle(filename, data):
 
 if __name__ == '__main__':
     map_graph = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
+    fig, ax = ox.plot_graph(map_graph, node_zorder=2, node_color='w', bgcolor='k')
+
     if 370897167 in map_graph.nodes():
         print('370897167 in map graph')
     else:
