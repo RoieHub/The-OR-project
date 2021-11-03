@@ -25,6 +25,8 @@ class Vehicle:
         else:
             self.passengers = passengers
 
+        self.path = None # This will be used to store the path the vehicle has remaining from the last epoch, that he didn't have time tp finish. We use it in case the vehicle will not get a trip assigned to him on the next epoch, but still have passengers on him.
+
     def __repr__(self):
         return 'v' + str(self.id)
 
