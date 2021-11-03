@@ -53,26 +53,51 @@ Param:
 
 """
 def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict , map_graph, starting_time = None ):
-    # Pull the request from csv as dataframe.
     list_of_rows = list_of_csv_rows(requests_csv_path)
     epochs_list = []
     epoch = []
     e_len = datetime.timedelta(seconds=epoch_len_sec)
-    current_time = str_to_time(list_of_rows[1][1]) # TODO Check if + e_len needed here.
+    start = (str_to_time(list_of_rows[1][1]))
     if starting_time is not None:
-        current_time = str_to_time(starting_time) #+e_len Ofir - I commented this out as I think this is a mistake.
-    ending_time = current_time + datetime.timedelta(seconds=(epoch_len_sec*num_of_epochs))
-
+        start = str_to_time(starting_time) #+e_len Ofir - I commented this out as I think this is a mistake.
+    ending = start + datetime.timedelta(seconds=(epoch_len_sec*num_of_epochs))
+    curr_epoch_starting_time = start
+    curr_epoch_ending_time = start + e_len
     for r in list_of_rows:
-        if r[1] == '1' or r[1] == 'pickup_datetime':
+        request_time = r[1]
+        if request_time < curr_epoch_starting_time: # This request is before our epoch.
             continue
-        pu_time = str_to_time(r[1])
-        if pu_time < current_time: # Not in our Epochs. Ofir - I This is to skip the requests that are before the time from which we want to start the simulation.
-            continue
-        elif pu_time < (current_time + e_len):  # Request is in current epoch
-            # Ofir - Next part is to deal with the fact that we get different graphs (Roie and Ofir).
-            # I don't create any Request that has an origin or dest that isn't on the map.
+        elif request_time >= curr_epoch_starting_time and request_time < curr_epoch_ending_time and request_time < ending: # This is in our current epoch
 
+            # Request quality check.
+            if not check_node_in_graph(int(r[2]), map_graph):
+                print("Skipping request with id = " + str(int(r[0])) + ", because origin not in graph. Origin = " + str(
+                    int(r[2])) + ".")
+                continue
+            if not check_node_in_graph(int(r[3]), map_graph):
+                print("Skipping request with id = " + str(int(r[0])) + ", because dest not in graph. Origin = " + str(
+                    int(r[3])) + ".")
+                continue
+            # Append the current request to this epoch.
+            epoch.append(Request.Request(ori=int(r[2]), dest=int(r[3]), request_time=request_time, spc_dict=spc_dict, map_graph=map_graph, data_line_id=int(r[0])))
+
+            # Ofir - Check if the new request's self.earliest_time_to_dest == self.time_of_request.
+            # That is a sign we should ignore the request (because shortest path between origin and dest couldn't be found)
+
+            if epoch[-1].earliest_time_to_dest == epoch[-1].time_of_request:
+                print("Dropping the request, because earliest_time_to_dest == time_of_request ")
+                epoch.pop()
+            continue
+        elif request_time >= curr_epoch_ending_time and request_time < ending: # This is a request for a new epoch to be created.
+            # Append the epoch to epoch_list
+            epochs_list.append(copy.copy(epoch))
+            # Clear the epoch
+            epoch.clear()
+            # Update epoch boundries
+            curr_epoch_starting_time += e_len
+            curr_epoch_ending_time+=e_len
+
+            # This code's purpose - check above comment, in previous elif
             if not check_node_in_graph(int(r[2]), map_graph):
                 print("Skipping request with id = " + str(int(r[0])) + ", because origin not in graph. Origin = " + str(
                     int(r[2])) + ".")
@@ -82,33 +107,8 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
                     int(r[3])) + ".")
                 continue
 
-            epoch.append(Request.Request(ori=int(r[2]), dest=int(r[3]), request_time=pu_time, spc_dict=spc_dict, map_graph=map_graph, data_line_id=int(r[0])))
-
-            # Ofir - Check if the new request's self.earliest_time_to_dest == self.time_of_request.
-            # That is a sign we should ignore the request (because shortest path between origin and dest couldn't be found)
-
-            if epoch[-1].earliest_time_to_dest == epoch[-1].time_of_request:
-                print("Dropping the request, because earliest_time_to_dest == time_of_request ")
-                epoch.pop()
-            continue
-        elif pu_time >= (current_time + e_len) and (current_time + e_len) <= ending_time:  # This belongs to a new epoch.
-            # Append the epoch to epoch_list
-            epochs_list.append(copy.copy(epoch))
-            # Clear the epoch
-            epoch.clear()
-            #Update current time
-            current_time += e_len
-
-            # This code's purpose - check above comment, in previous elif
-            if not check_node_in_graph(int(r[2]), map_graph):
-                print("Skipping request with id = " + str(int(r[0])) + ", because origin not in graph. Origin = " + str(int(r[2])) + ".")
-                continue
-            if not check_node_in_graph(int(r[3]), map_graph):
-                print("Skipping request with id = " + str(int(r[0])) + ", because dest not in graph. Origin = " + str(int(r[3])) + ".")
-                continue
-
-
-            epoch.append(Request.Request(ori=int(r[2]), dest=int(r[3]), request_time=pu_time, spc_dict=spc_dict, map_graph=map_graph,data_line_id=int(r[0])))
+            epoch.append(Request.Request(ori=int(r[2]), dest=int(r[3]), request_time=request_time, spc_dict=spc_dict,
+                                         map_graph=map_graph, data_line_id=int(r[0])))
 
             # This code's purpose - check above comment, in previous elif
             if epoch[-1].earliest_time_to_dest == epoch[-1].time_of_request:
@@ -116,11 +116,18 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
                 epoch.pop()
 
             continue
-        elif pu_time >= ending_time:
+        elif request_time >= ending:
             break
-        else :
+        else:
             raise Exception("Sorry, problem with line " + str(r))
     return epochs_list
+
+
+
+
+
+
+
 
 
 def check_node_in_graph(node_number: int, map_graph: networkx.Graph):
