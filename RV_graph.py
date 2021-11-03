@@ -32,8 +32,7 @@ Figure 3 an example of the RV-graph is shown with 90 requests and 30 vehicles
 
 
 class RV_graph:
-    # TODO - when initiating  the program, create a virtual vehicle. It will be the premenant virtual vehicle, used all throught the running of the program.
-    # current_time will be passed to this function. It can eoither be actual datetime.datetime.now, or some time given by a simulated run
+    # current_time will be passed to this function. It can either be actual datetime.datetime.now, or some time given by a simulated run
     def __init__(self, requests_list: Tuple[Request.Request, ...], vehicle_list: Tuple[Vehicle.Vehicle, ...], virtual_vehicle: Vehicle, map_graph: nx.Graph, current_time: datetime ,spc_dict: dict):
         # self.map_graph = map_graph
         # Init an empty Graph
@@ -58,26 +57,37 @@ class RV_graph:
         # Otherwise, meaning a route couldn't be found, don't add an edge between them.
         for i in range(len(requests_list) - 1):
             for j in range(i + 1, len(requests_list)):
-                # We create a copy of the 2 requests. so as not to change the originals
-                first_req = copy.copy(requests_list[i])
-                second_req = copy.copy(requests_list[j])
+                #Old style, using copy and setting the first_rew variables, and also putting first_req as passenger of virtual vehicle
+                # # We create a copy of the 2 requests. so as not to change the originals
+                # first_req = copy.copy(requests_list[i])
+                # second_req = copy.copy(requests_list[j])
+                #
+                # # we update the first req to be picked up
+                # first_req.actual_pick_up_time = current_time
+                # time_already_waited = current_time - first_req.time_of_request
+                # first_req.estimated_dropoff_time = first_req.earliest_time_to_dest + Request.Request.travel_delay - time_already_waited # TODO - Is this needed or valid?
+                #
+                # # Then we update the virtual vehicle -
+                # #  set the virual vechicle to be at the request i, with that request boarded on him
+                #
+                # # virtual_vehicle.curr_time = current_time # TODO - decide if this is needed
+                #
+                # virtual_vehicle.curr_pos = first_req.origin
+                # virtual_vehicle.passengers = [first_req]
+                #
+                # returned_value = TripAlgo.travel(v=virtual_vehicle, R=(second_req,), map_graph=map_graph, spc_dict=spc_dict, current_time=current_time)
+                # if returned_value[0] == True:
+                #     self.graph.add_edge(first_req, second_req, weight=returned_value[1])  # TODO - decide if need the weight attribute here, and also if we need the route, which can be added (it is returned_value[2])
 
-                # we update the first req to be picked up
-                first_req.actual_pick_up_time = current_time
-                time_already_waited = current_time - first_req.time_of_request
-                first_req.estimated_dropoff_time = first_req.earliest_time_to_dest + Request.Request.travel_delay - time_already_waited # TODO - Is this needed or valid?
-
-                # Then we update the virtual vehicle -
-                #  set the virual vechicle to be at the request i, with that request boarded on him
-
-                # virtual_vehicle.curr_time = current_time # TODO - decide if this is needed
+                first_req = requests_list[i]
+                second_req = requests_list[j]
 
                 virtual_vehicle.curr_pos = first_req.origin
-                virtual_vehicle.passengers = [first_req]
 
-                returned_value = TripAlgo.travel(v=virtual_vehicle, R=(second_req,), map_graph=map_graph, spc_dict=spc_dict, current_time=current_time)
+                returned_value = TripAlgo.travel(v=virtual_vehicle, R=(first_req, second_req), map_graph=map_graph, spc_dict=spc_dict, current_time=current_time)
                 if returned_value[0] == True:
-                    self.graph.add_edge(first_req, second_req, weight=returned_value[1])  # TODO - decide if need the weight attribute here, and also if we need the route, which can be added (it is returned_value[2])
+                    self.graph.add_edge(first_req, second_req, weight=returned_value[1])
+
 
 
         # Next, we add an edge between vehicles and requests - to indicate what vehicles could possibly take which requests.

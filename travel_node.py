@@ -24,7 +24,7 @@ class travel_node:
             #save the previous location, copy the delay acumultaed untill now, and the route untill now and append to it the location you went to now
             self.previous_location = copy.copy(copy_me.current_location)
             self.accumulating_delay = copy.copy(copy_me.accumulating_delay)
-            self.route = copy.copy(copy_me.route) #TODO - I think a shallow copy, like it is now, is OK here, but need to make sure
+            self.route = copy.copy(copy_me.route)
             self.route.append((destination_to_remove[1], destination_to_remove[2]))
 
             # Check if the drive you just did was to pickup or to drop-off someone.
@@ -58,7 +58,7 @@ class travel_node:
             self.my_vehicle = copy_me.my_vehicle #Only using vehicle for the initial node, so should consider changing so we don't use it.
             self.current_possible_destinations = copy.copy(copy_me.current_possible_destinations) #Don't think a deep copy is needed here. Items in current_possible_destinations are tuples, of time left (int, will be copied without problem, doesn't need deep copy),
             # , the request (OK to point to. Only thing that can change in it is the estimated_dropoff_time, and that doesn't matter here), and a char that indicates whether this is a pickup or dropoff, and that shouldn't change either.
-            self.current_possible_destinations.remove(destination_to_remove) #TODO - make sure this works, that the relevant tuple is removed from the current_possible_destinations
+            self.current_possible_destinations.remove(destination_to_remove)
 
             #update the extra time left for all the tuples in the "current_possible_destinations" object.
             #Calculated like this -
@@ -150,7 +150,7 @@ class travel_node:
             #add all the passangers currently on the vehicle as possible destinations, but this time calculate time left to start going their destinations (as they were already picked-up)
             for vr in _v.passengers:
                 spc_dict_caregiver.spc_dict_caregiver(spc_dict=spc_dict, map_graph=map_graph, source_node=vr.destination)
-                extra_time_left_to_dropoff = vr.estimated_dropoff_time - self.time - datetime.timedelta(seconds=spc_dict[self.current_location][1][vr.destination]) #TODO minus time to get from vehicle's current location to passenger destination
+                extra_time_left_to_dropoff = vr.estimated_dropoff_time - self.time - datetime.timedelta(seconds=spc_dict[self.current_location][1][vr.destination])
                 # heappush(self.current_possible_destinations, (extra_time_left_to_dropoff, vr, 'd')) #the 'd' is to say this is a drop-off
                 self.current_possible_destinations.append([extra_time_left_to_dropoff, vr, 'd']) #the 'd' is to say this is a drop-off
 
