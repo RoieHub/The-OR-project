@@ -192,13 +192,13 @@ def update_v_location(v, path, curr_time, epoch_len, spc_dict, map_graph):
             # Instead of using spc_dict here, we can use the travel_time value that exists between each neighboring nodes.
             # That value already exists, as we always first run "add_edge_speeds()" and "add_edge_travel_times()" at the beginning of the simulation.
             # This way we save the time spc_dict_caregiver would spend calculating the paths and times from v.curr_pos to all of the graph.
-            time_to_next_middle_stop = map_graph[v.curr_pos][path_to_last_stop[0]][0]['travel_time']
+            time_to_next_middle_stop = datetime.timedelta(seconds=map_graph[v.curr_pos][path_to_last_stop[0]][0]['travel_time'])
 
             while time_spent + time_to_next_middle_stop <= epoch_len:
                 v.curr_pos = path_to_last_stop.pop(0)
                 time_spent += time_to_next_middle_stop
 
-                time_to_next_middle_stop = map_graph[v.curr_pos][path_to_last_stop[0]][0]['travel_time']
+                time_to_next_middle_stop = datetime.timedelta(seconds=map_graph[v.curr_pos][path_to_last_stop[0]][0]['travel_time'])
 
             # Now we add the remaining path to the vehicle's self.path.
             # We do that for the case in which a new trip was not assigned to the vehicle at the next epoch, and the vehicle should continue with the path he had.
