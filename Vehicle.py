@@ -52,7 +52,8 @@ class Vehicle:
         return
 
     #This metod add a request to 'rv_to_me' dictionary, for rtv usage later.
-    def add_r_connected_to_me(self, r: Request, cost: int, path: list[tuple[Request, str]]):
+    #def add_r_connected_to_me(self, r: Request, cost: int, path: list[tuple[Request, str]]): # This makes problems
+    def add_r_connected_to_me(self, r: Request, cost: int, path):
         # self.r_connected_to_me[str(r)] = cost
         self.r_connected_to_me.append([r, cost, path])
     def clear_rv_after_epoch(self):

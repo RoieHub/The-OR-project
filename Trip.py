@@ -27,7 +27,8 @@ class Trip:
         return
     '''
 
-    def add_vehicle_candidate(self, VCP: Tuple[Vehicle.Vehicle, int, list[tuple[Request, str]]]): #VCP = Vehicle Cost Path
+   # def add_vehicle_candidate(self, VCP: Tuple[Vehicle.Vehicle, int, list[tuple[Request, str]]]): #This bug the system with TypeError: 'type' object is not subscriptable
+    def add_vehicle_candidate(self, VCP):#VCP = Vehicle Cost Path
         self.v_candidates.append(VCP)
 
     def __repr__(self):

@@ -2,9 +2,6 @@ import copy
 import datetime
 import operator
 from typing import Tuple
-
-import networkx
-
 import Request
 import networkx as nx
 import datetime as dt
@@ -141,7 +138,7 @@ def travel(v: Vehicle, R: Tuple[Request.Request, ...], map_graph, spc_dict, curr
 
 # For each of the node's children (possible destinations) tries to expand the tree.
 # Checking if already going over the threshold, or lowest extra_time_left on the possible destinations is negative (= fail)
-def expand_tree(current_node: travel_node, t: int, map_graph: networkx.Graph, spc_dict):
+def expand_tree(current_node: travel_node, t: int, map_graph: nx.Graph, spc_dict):
     found_an_answer = False
     threshold = copy.copy(t)  # shallow copy only needed
     answer_route = []
