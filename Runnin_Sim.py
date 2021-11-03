@@ -64,11 +64,12 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
     curr_epoch_starting_time = start
     curr_epoch_ending_time = start + e_len
     for r in list_of_rows:
-        request_time = r[1]
+        request_time = str_to_time(r[1])
+        if r[0] == '1666870':
+            print('1666870 is here')
         if request_time < curr_epoch_starting_time: # This request is before our epoch.
             continue
         elif request_time >= curr_epoch_starting_time and request_time < curr_epoch_ending_time and request_time < ending: # This is in our current epoch
-
             # Request quality check.
             if not check_node_in_graph(int(r[2]), map_graph):
                 print("Skipping request with id = " + str(int(r[0])) + ", because origin not in graph. Origin = " + str(
@@ -117,9 +118,15 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
 
             continue
         elif request_time >= ending:
+            if epoch:  # If epoch not empty , append it to epoch_list .
+                epochs_list.append(copy.copy(epoch))
+                epoch.clear()
             break
         else:
             raise Exception("Sorry, problem with line " + str(r))
+    if epoch:  # If epoch not empty , append it to epoch_list .
+        epochs_list.append(copy.copy(epoch))
+        epoch.clear()
     return epochs_list
 
 
