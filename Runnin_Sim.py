@@ -69,31 +69,13 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
         if request_time < curr_epoch_starting_time: # This request is before our epoch.
             continue
         elif request_time >= curr_epoch_starting_time and request_time < curr_epoch_ending_time and request_time < ending: # This is in our current epoch
-            # Request quality check.
 
-
-
-            if not check_node_in_graph(int(r[2]), map_graph):
-                print("Skipping request with id = " + str(int(r[0])) + ", because origin not in graph. Origin = " + str(
-                    int(r[2])) + ".")
-                continue
-            if not check_node_in_graph(int(r[3]), map_graph):
-                print("Skipping request with id = " + str(int(r[0])) + ", because dest not in graph. Origin = " + str(
-                    int(r[3])) + ".")
-                continue
-            # Check if the origin or dest of the request has not neighbors, i.e. after reaching the source\dest, we can't drive from it
-            if (len(list(map_graph.neighbors(int(r[2]))))) == 0 or (len(list(map_graph.neighbors(int(r[3]))))) == 0:
+            # Request validity check.
+            if not check_request_validity(int(r[0]), int(r[2]), int(r[3]), map_graph):
                 continue
             # Append the current request to this epoch.
             epoch.append(Request.Request(ori=int(r[2]), dest=int(r[3]), request_time=request_time, spc_dict=spc_dict, map_graph=map_graph, data_line_id=int(r[0])))
 
-            # Ofir - Check if the new request's self.earliest_time_to_dest == self.time_of_request.
-            # That is a sign we should ignore the request (because shortest path between origin and dest couldn't be found)
-
-            if epoch[-1].earliest_time_to_dest == epoch[-1].time_of_request:
-                print("Dropping the request, because earliest_time_to_dest == time_of_request ")
-                epoch.pop()
-            continue
         elif request_time >= curr_epoch_ending_time and request_time < ending: # This is a request for a new epoch to be created.
             # Append the epoch to epoch_list
             epochs_list.append(copy.copy(epoch))
@@ -103,20 +85,9 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
             curr_epoch_starting_time += e_len
             curr_epoch_ending_time += e_len
 
-            # This code's purpose - check above comment, in previous elif
-            if not check_node_in_graph(int(r[2]), map_graph):
-                print("Skipping request with id = " + str(int(r[0])) + ", because origin not in graph. Origin = " + str(
-                    int(r[2])) + ".")
+            if not check_request_validity(int(r[0]), int(r[2]), int(r[3]), map_graph):
                 continue
-            if not check_node_in_graph(int(r[3]), map_graph):
-                print("Skipping request with id = " + str(int(r[0])) + ", because dest not in graph. Origin = " + str(
-                    int(r[3])) + ".")
-                continue
-            # Check if the origin or dest of the request has not neighbors, i.e. after reaching the source\dest, we can't drive from it
-            if (len(list(map_graph.neighbors(int(r[2]))))) == 0 or (len(list(map_graph.neighbors(int(r[3]))))) == 0:
-                continue
-            epoch.append(Request.Request(ori=int(r[2]), dest=int(r[3]), request_time=request_time, spc_dict=spc_dict,
-                                         map_graph=map_graph, data_line_id=int(r[0])))
+            epoch.append(Request.Request(ori=int(r[2]), dest=int(r[3]), request_time=request_time, spc_dict=spc_dict,map_graph=map_graph, data_line_id=int(r[0])))
 
             # This code's purpose - check above comment, in previous elif
             if epoch[-1].earliest_time_to_dest == epoch[-1].time_of_request:
@@ -135,6 +106,28 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
         epochs_list.append(copy.copy(epoch))
         epoch.clear()
     return epochs_list
+
+def check_request_validity(r_id:int, r_origin: int, r_dest:int, map_graph):
+    if not check_node_in_graph(r_origin, map_graph):
+        print("Skipping request with id = " + str(r_id) + ", because origin not in graph. Origin = " + str(r_origin) + ".")
+        return False
+    if not check_node_in_graph(r_dest, map_graph):
+        print("Skipping request with id = " + str(r_id) + ", because dest not in graph. Origin = " + str(r_dest) + ".")
+        return False
+    # Check if the origin or dest of the request has not neighbors, i.e. after reaching the source\dest, we can't drive from it
+    if (len(list(map_graph.neighbors(r_origin)))) == 0 or (len(list(map_graph.neighbors(r_dest)))) == 0:
+        print("Dropping the request, because it's source or dest have no neighbors ")
+        return False
+
+    # OLD WAY of the next check - Ofir - Check if the new request's self.earliest_time_to_dest == self.time_of_request.
+    # That is a sign we should ignore the request (because shortest path between origin and dest couldn't be found)
+    if r_origin == r_dest:
+        print("Dropping the request, because earliest_time_to_dest == time_of_request ")
+        return False
+
+    #else:
+    return True
+
 
 def check_node_in_graph(node_number: int, map_graph: networkx.Graph):
     if node_number in map_graph.nodes:
