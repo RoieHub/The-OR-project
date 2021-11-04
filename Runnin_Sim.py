@@ -157,6 +157,7 @@ def filter_requests_time_to_pickup_over(r_nok, curr_time, added_time):
     for r in r_nok:
         if curr_time + added_time > r.latest_time_to_pick_up:
             remove_list.append(r)
+    logging.info('num of Requests that cannot be served in the future :'+str(len(remove_list)))
     for r in remove_list:
         r_nok.remove(r)
     return r_nok # TODO: is this necessary?
@@ -180,8 +181,10 @@ def update_v_after_e(v_list, v_ok: set, assigned_tv: list, curr_time, epoch_len,
     for assi in assigned_tv:
         update_estimated_dropoff_time_of_requests_in_assignment(v=assi[1], path=assi[3], curr_time=curr_time, spc_dict=spc_dict)
         update_v_location(v=assi[1], path=assi[3], curr_time=curr_time, epoch_len=epoch_len, spc_dict=spc_dict, map_graph=map_graph)
-
-        # Update the location somehow
+    # Writing down stats
+    idel_rate = len(idle_vehicles) / len(v_list) * 100
+    logging.info('Idel vehicles : '+str(len(idle_vehicles))+'/'+str(len(v_list))+' = ' +str(idel_rate)+'%' )
+    return  idel_rate
 
     # def __init__(self, requests_list: Tuple[Request.Request, ...], vehicle_list: Tuple[Vehicle.Vehicle, ...], virtual_vehicle: Vehicle, map_graph: nx.Graph, current_time: datetime ,spc_dic
 
@@ -256,6 +259,14 @@ def update_v_location(v, path, curr_time, epoch_len, spc_dict, map_graph):
 
             break  # TODO: make sure this breaks the above for loop
 
+"""
+This function count the real ammount of requests created in this run
+"""
+def count_requests(epochs):
+    result = 0
+    for e in epochs:
+        result += len(e)
+    return result
 
 
 
@@ -285,9 +296,13 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
     # Stats for log
     rate_of_epoch_sucsess = 0
     rate_of_run_sucsess = 0
+    rate_of_idel_run = 0
+    num_of_unserved_requests = 0
+
     logging.info('This run : ST= : '+ starting_time +', epoch_len = '+ str(epoch_len_sec) +' , num of epochs = '+ str(num_of_epochs) + ", num of vehicles = "+ str(num_of_vehicles) +'\n')
 # def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, starting_time=None):
     epochs = epoch_separator(requests_csv_path=csv_path, epoch_len_sec=epoch_len_sec, num_of_epochs=num_of_epochs, starting_time=starting_time,spc_dict=spc_dict, map_graph=map_graph )
+    num_of_generated_requests = count_requests(epochs)
     added_time = datetime.timedelta(seconds=epoch_len_sec)
     # Working on each Epoch
     for count, epoch in enumerate(epochs):
@@ -306,12 +321,20 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
             'E' + str(count) + ' : ' + str(epoch[0].time_of_request) + ' to ' + str(epoch[-1].time_of_request) + '\n')
         # Update rate of sucsess
         rate_of_epoch_sucsess = len(greedy.r_ok) / len(epoch)  # The number of sent requests this epoch
+        rate_of_run_sucsess += rate_of_epoch_sucsess
+        logging.info('Epoch sucsess rate: ' + str(rate_of_epoch_sucsess*100)+'%')
 
-        logging.info('Epoch sucsess rate' +str(rate_of_epoch_sucsess*100)+'%'+'\n')
+
+
+        r_nok_ori_len = len(r_nok)
+        r_nok_final_len = len(r_nok)
 
         if len(r_nok) != 0 and (len(epochs) - 1) != count :# If no r to append and this is not the last epoch.
             r_nok = filter_requests_time_to_pickup_over(r_nok, curr_time, added_time)
+            r_nok_final_len = len(r_nok)
             epochs[count+1] = list(r_nok) + epochs[count+1] #TODO check validity
+
+        num_of_unserved_requests += (r_nok_ori_len-r_nok_final_len)
 
         sizes_of_assigned_trips = [0 for _ in range(Vehicle.Vehicle.max_capacity)]
         for trip_tuple in greedy.assigned_tv:
@@ -321,7 +344,9 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
 
 
         # Update all vehicles with
-        update_v_after_e(v_list, greedy.v_ok, greedy.assigned_tv, curr_time, added_time, spc_dict, map_graph)
+        idel_rate = update_v_after_e(v_list, greedy.v_ok, greedy.assigned_tv, curr_time, added_time, spc_dict, map_graph)
+        rate_of_idel_run+=idel_rate
+
         # update_penalties(r_nok) # TODO what to update?
 
         # Add requests from last epoch, that were assigned vehicles, but weren't picked-up yet
@@ -330,7 +355,7 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
                 if r.actual_pick_up_time is None:
                     epochs[count + 1].insert(0, r)
 
-        # Update log of this epoch
+
 
         # logging.info()
         # What to do with all the data?
@@ -340,7 +365,11 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
             v.clear_rv_after_epoch()
 
         epoch_end_time = datetime.datetime.now()
-        print("epoch number " + str(count) + " done. Time taken for this epoch = " + str(epoch_end_time-epoch_start_time) + ".\n\n")
+        logging.info("epoch number " + str(count) + " done. Time taken for this epoch = " + str(epoch_end_time-epoch_start_time) + ".\n")
+
+    logging.info("STATS FOR THE WHOLE RUN"+'.\n')
+    logging.info("Mean rate of service : "+ str(rate_of_run_sucsess/num_of_epochs)+"Total unserved : "+str(num_of_unserved_requests)+" out of "+str(num_of_generated_requests)+".\n")
+    logging.info("Mean Idel vehicles for all epochs : "+ str(rate_of_idel_run/num_of_epochs)+".\n")
 
     print('It is alive!')
 
@@ -411,7 +440,7 @@ def Running_simple_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, 
 if __name__ == '__main__':
     # print('this is main, now lets see...')
     # start_time=datetime.datetime.now()
-    running_ny_sim('requests.csv', 50, 10, 30, starting_time='2013-05-05 08:00:01')
+    running_ny_sim('requests.csv', 50, 1000, 30, starting_time='2013-05-05 08:00:01')
     # print('====== is took : '+str(datetime.datetime.now() - start_time))
 
 
