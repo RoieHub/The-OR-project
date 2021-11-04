@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import datetime
+import logging
 import operator
 from typing import Tuple
 
@@ -142,8 +143,14 @@ class travel_node:
                     extra_time_left_to_pickup = r.latest_time_to_pick_up
                 else: #in this case, a vehicle was already assigned
                     extra_time_left_to_pickup = r.estimated_dropoff_time
-
-                extra_time_left_to_pickup -= self.time + datetime.timedelta(seconds=spc_dict[self.current_location][1][r.origin])
+                try:
+                    extra_time_left_to_pickup -= self.time + datetime.timedelta(seconds=spc_dict[self.current_location][1][r.origin])
+                except:
+                    extra_time_left_to_pickup = datetime.timedelta(seconds=-1)
+                    src = str(self.current_location)
+                    dst = str(r.origin)
+                    message = "Except in travel node by src = "+ src+" and dst is "+ dst
+                    logging.error(message)
                 # heappush(self.current_possible_destinations, (extra_time_left_to_pickup, r, 'p')) #the 'p' is to say this is a pickup
                 self.current_possible_destinations.append([extra_time_left_to_pickup, r, 'p']) #the 'p' is to say this is a pickup
 
