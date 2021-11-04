@@ -89,12 +89,6 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
                 continue
             epoch.append(Request.Request(ori=int(r[2]), dest=int(r[3]), request_time=request_time, spc_dict=spc_dict,map_graph=map_graph, data_line_id=int(r[0])))
 
-            # This code's purpose - check above comment, in previous elif
-            if epoch[-1].earliest_time_to_dest == epoch[-1].time_of_request:
-                print("Dropping the request, because earliest_time_to_dest == time_of_request ")
-                epoch.pop()
-
-            continue
         elif request_time >= ending:
             if epoch:  # If epoch not empty , append it to epoch_list .
                 epochs_list.append(copy.copy(epoch))
@@ -181,7 +175,7 @@ def update_v_after_e(v_list, v_ok: set, assigned_tv: list, curr_time, epoch_len,
         else:  # else = vehicle v didn't get a trip assignment, and also has passengers on it.
             # We call "update_v_location" with the path being v.path, the path he has remaining from the last epoch.
             update_v_location(v, v.path, curr_time, epoch_len, spc_dict, map_graph)
-    print("Idle_vehicles amount = " + str(len(idle_vehicles)) + "\n\n")
+    print("Idle_vehicles amount = " + str(len(idle_vehicles)))
     # Update the location of vehicles with new assignments.
     for assi in assigned_tv:
         update_estimated_dropoff_time_of_requests_in_assignment(v=assi[1], path=assi[3], curr_time=curr_time, spc_dict=spc_dict)
@@ -297,6 +291,7 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
     added_time = datetime.timedelta(seconds=epoch_len_sec)
     # Working on each Epoch
     for count, epoch in enumerate(epochs):
+        epoch_start_time = datetime.datetime.now()
         curr_time += added_time
         rv = RV_graph.RV_graph(requests_list=epoch, vehicle_list=v_list, virtual_vehicle=virtual_v, map_graph=map_graph, current_time=curr_time, spc_dict=spc_dict)
         rtv = RTV_graph.RTV_graph(rv_graph=rv, spc_dict=spc_dict, map_graph=map_graph, current_time=curr_time) # TODO Check if current time needed as well
@@ -343,6 +338,9 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
         # Last operation in each epoch.
         for v in v_list:
             v.clear_rv_after_epoch()
+
+        epoch_end_time = datetime.datetime.now()
+        print("epoch number " + str(count) + " done. Time taken for this epoch = " + str(epoch_end_time-epoch_start_time) + ".\n\n")
 
     print('It is alive!')
 
