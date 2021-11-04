@@ -49,11 +49,19 @@ class RTV_graph:
         vehicle_counter = 0
         # Now for each vehicle
         for v in vehicle_nodes:
-            print("Starting algo1 for vehicle number " + str(vehicle_counter))
+            # print("Starting algo1 for vehicle number " + str(vehicle_counter))
             begining_time = datetime.datetime.now()
             v_taos = self.algo1(v,spc_dict=spc_dict, map_graph=map_graph, rv_graph=rv_graph, current_time=current_time)
             ending_time = datetime.datetime.now()
-            print("Ended algo1 for vehicle number " + str(vehicle_counter) + ". Time taken = " + str(ending_time-begining_time) +"\n\n")
+            # print("Ended algo1 for vehicle number " + str(vehicle_counter) + ". Time taken = " + str(ending_time-begining_time) +"\n\n")
+
+            algo1_stats_for_specific_v = "Ended algo1 for vehicle number " + str(vehicle_counter) + ". Time taken = " + str(ending_time-begining_time) + ". Trips found of size X = "
+            for i in range(len(v_taos)):
+                algo1_stats_for_specific_v += str(len(v_taos[i])) + ", "
+            algo1_stats_for_specific_v = algo1_stats_for_specific_v[:-2]
+            algo1_stats_for_specific_v += ". Num of passengers on v = " + str(len(v.passengers)) + "."
+            print(algo1_stats_for_specific_v)
+
             vehicle_counter += 1
             # Now merge all of v_taos entries to main tao.
 
@@ -160,7 +168,7 @@ class RTV_graph:
 
         ending_time = datetime.datetime.now()
 
-        print("Creating Trips of size 1 took this much time = " + str(ending_time-begining_time))
+        # print("Creating Trips of size 1 took this much time = " + str(ending_time-begining_time))
 
 
         # After we are finished adding all the trips to taoK, we append them to v_taos
@@ -189,7 +197,7 @@ class RTV_graph:
 
         ending_time = datetime.datetime.now()
 
-        print("Creating Trips of size 2 took this much time = " + str(ending_time-begining_time))
+        # print("Creating Trips of size 2 took this much time = " + str(ending_time-begining_time))
 
         v_taos.append(copy.copy(taoK))
         taoK = []
@@ -209,8 +217,18 @@ class RTV_graph:
         for t in Trips_Of_Size_K_minus1:
             taoK_minus1_hashes_dict[t.__hash__()]=1
 
-
+        # time_limit_per_K = Time limit per calculating trips os size K. We need this because calcs at this part can get very very large, and take A LOT of time.
+        # This isn't the best way, we are aware of that, but it's a start and better then nothing.
+        # We use time_limit_per_first_trip to limit the time each t1 (first of the 2 trips we are combining) gets. This is so we don't just use all the time limit for k, for one or low amount of first trips.
+        time_limit_per_K = datetime.timedelta(seconds=2)
         for k in range(3, Vehicle.Vehicle.max_capacity - len(v.passengers) + 1):
+            if (len(v_taos[-1]) - 1) <= 0:
+                #This append is so the printing will look the same for each vehicle, and be more comfortable to read
+                v_taos.append([])
+                continue
+            else:
+                time_limit_per_first_trip = time_limit_per_K / (len(v_taos[-1]) - 1)
+            k_begining_time = datetime.datetime.now()
             begining_time = datetime.datetime.now()
             time_spent_creating_new_trip_requests = datetime.timedelta(seconds=0)
             time_until_CHECK2 = datetime.timedelta(seconds=0)
@@ -222,6 +240,11 @@ class RTV_graph:
             for t1 in range(len(v_taos[-1]) - 1):
                 trip1 = v_taos[-1][t1][0]
                 for t2 in range(t1 + 1, len(v_taos[-1])):
+                    # if we are calculating this K for over the time_limit_per_K, skip to the next K.
+
+                    # if datetime.datetime.now() - k_begining_time > time_limit_per_K:
+                    if datetime.datetime.now() - k_begining_time > (time_limit_per_first_trip * (t1+1)):
+                        break
                     begining_time_before_CHECK2 = datetime.datetime.now()
                     trip2 = v_taos[-1][t2][0]
 
@@ -275,12 +298,12 @@ class RTV_graph:
                         time_until_CHECK2 += ending_time_before_CHECK2 - begining_time_before_CHECK2
 
 
-            print("CHECK2_counter = " + str(CHECK2_counter) + ", CHECK3_counter = " + str(CHECK3_counter))
-            print("time_until_CHECK2 = " + str(time_until_CHECK2) + ", of which, time_spent_creating_new_trip_requests = " + str(time_spent_creating_new_trip_requests))
-            print("time_in_CHECK2 = " + str(time_in_CHECK2) + " , time_in_CHECK3 = " + str(time_in_CHECK3))
+            # print("CHECK2_counter = " + str(CHECK2_counter) + ", CHECK3_counter = " + str(CHECK3_counter))
+            # print("time_until_CHECK2 = " + str(time_until_CHECK2) + ", of which, time_spent_creating_new_trip_requests = " + str(time_spent_creating_new_trip_requests))
+            # print("time_in_CHECK2 = " + str(time_in_CHECK2) + " , time_in_CHECK3 = " + str(time_in_CHECK3))
             ending_time = datetime.datetime.now()
-            print("Creating Trips of size " + str(k) + " took this much time = " + str(ending_time - begining_time))
-            print("Found " + str(len(taoK)) + " trips of size " + str(k) + "\n")
+            # print("Creating Trips of size " + str(k) + " took this much time = " + str(ending_time - begining_time))
+            # print("Found " + str(len(taoK)) + " trips of size " + str(k) + "\n")
 
             v_taos.append(copy.copy(taoK))
             taoK = []

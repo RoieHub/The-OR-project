@@ -70,6 +70,9 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
             continue
         elif request_time >= curr_epoch_starting_time and request_time < curr_epoch_ending_time and request_time < ending: # This is in our current epoch
             # Request quality check.
+
+
+
             if not check_node_in_graph(int(r[2]), map_graph):
                 print("Skipping request with id = " + str(int(r[0])) + ", because origin not in graph. Origin = " + str(
                     int(r[2])) + ".")
@@ -176,14 +179,16 @@ def update_v_after_e(v_list, v_ok: set, assigned_tv: list, curr_time, epoch_len,
     v_set = set(v_list)
     v_nok = v_set - v_ok
     # Update the location of vehicles with no new assignments.
+    idle_vehicles = []
     for v in v_nok:
         if not v.passengers:  # This checks if current passengers list is empty https://flexiple.com/check-if-list-is-empty-python/
             # We check this as if the passengers list is empty, the vehicle is idle (otherwise, even though it didn't get an assignment, there are people on it, meaning he has a trip to do.
-            print('idle vehicle' + str(v))  # TODO something with idel.
+            # print('idle vehicle' + str(v))  # TODO something with idle.
+            idle_vehicles.append(v.id)
         else:  # else = vehicle v didn't get a trip assignment, and also has passengers on it.
             # We call "update_v_location" with the path being v.path, the path he has remaining from the last epoch.
             update_v_location(v, v.path, curr_time, epoch_len, spc_dict, map_graph)
-
+    print("Idle_vehicles amount = " + str(len(idle_vehicles)) + "\n\n")
     # Update the location of vehicles with new assignments.
     for assi in assigned_tv:
         update_estimated_dropoff_time_of_requests_in_assignment(v=assi[1], path=assi[3], curr_time=curr_time, spc_dict=spc_dict)
@@ -319,6 +324,13 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
         if len(r_nok) != 0 and (len(epochs) - 1) != count :# If no r to append and this is not the last epoch.
             r_nok = filter_requests_time_to_pickup_over(r_nok, curr_time, added_time)
             epochs[count+1] = list(r_nok) + epochs[count+1] #TODO check validity
+
+        sizes_of_assigned_trips = [0 for _ in range(Vehicle.Vehicle.max_capacity)]
+        for trip_tuple in greedy.assigned_tv:
+            sizes_of_assigned_trips[len(trip_tuple[0].requests)-1] += 1
+        print("Amounts of trips assigned, by sizes of trips = " + str(sizes_of_assigned_trips))
+
+
 
         # Update all vehicles with
         update_v_after_e(v_list, greedy.v_ok, greedy.assigned_tv, curr_time, added_time, spc_dict, map_graph)
