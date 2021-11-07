@@ -76,6 +76,12 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
             # Append the current request to this epoch.
             epoch.append(Request.Request(ori=int(r[2]), dest=int(r[3]), request_time=request_time, spc_dict=spc_dict, map_graph=map_graph, data_line_id=int(r[0])))
 
+            # Ofir - Check if the new request's self.earliest_time_to_dest == self.time_of_request.
+            # That is a sign we should ignore the request (because shortest path between origin and dest couldn't be found)
+            if epoch[-1].earliest_time_to_dest == epoch[-1].time_of_request:
+                print("Dropping the request, because earliest_time_to_dest == time_of_request ")
+                epoch.pop()
+
         elif request_time >= curr_epoch_ending_time and request_time < ending: # This is a request for a new epoch to be created.
             # Append the epoch to epoch_list
             epochs_list.append(copy.copy(epoch))
@@ -88,6 +94,13 @@ def epoch_separator(requests_csv_path , epoch_len_sec , num_of_epochs ,spc_dict 
             if not check_request_validity(int(r[0]), int(r[2]), int(r[3]), map_graph):
                 continue
             epoch.append(Request.Request(ori=int(r[2]), dest=int(r[3]), request_time=request_time, spc_dict=spc_dict,map_graph=map_graph, data_line_id=int(r[0])))
+
+            # Ofir - Check if the new request's self.earliest_time_to_dest == self.time_of_request.
+            # That is a sign we should ignore the request (because shortest path between origin and dest couldn't be found)
+            if epoch[-1].earliest_time_to_dest == epoch[-1].time_of_request:
+                print("Dropping the request, because earliest_time_to_dest == time_of_request ")
+                epoch.pop()
+            continue
 
         elif request_time >= ending:
             if epoch:  # If epoch not empty , append it to epoch_list .
@@ -113,10 +126,15 @@ def check_request_validity(r_id:int, r_origin: int, r_dest:int, map_graph):
         print("Dropping the request, because it's source or dest have no neighbors ")
         return False
 
+    # This specific spot\node is problematic - you can drive FROM it, but not TO it.
+    # There are better ways to do this, first thing that comes to mind is if a call to spc_dict gives an error, i.e. a node isn't reachable, remove that request. But that is something to be done at a later time. We need to finish the project.
+    if r_origin == 5079840929 or r_dest == 5079840929:
+        return False
+
     # OLD WAY of the next check - Ofir - Check if the new request's self.earliest_time_to_dest == self.time_of_request.
     # That is a sign we should ignore the request (because shortest path between origin and dest couldn't be found)
     if r_origin == r_dest:
-        print("Dropping the request, because earliest_time_to_dest == time_of_request ")
+        print("Dropping the request, because r_origin == r_dest ")
         return False
 
     #else:
@@ -185,9 +203,9 @@ def update_v_after_e(v_list, v_ok: set, assigned_tv: list, curr_time, epoch_len,
         new_done_reqs = update_v_location(v=assi[1], path=assi[3], curr_time=curr_time, epoch_len=epoch_len, spc_dict=spc_dict, map_graph=map_graph)
         done_reqs.extend(new_done_reqs)
     # Writing down stats
-    idel_rate = len(idle_vehicles) / len(v_list) * 100
-    logging.info('Idel vehicles : '+str(len(idle_vehicles))+'/'+str(len(v_list))+' = ' +str(idel_rate)+'%' )
-    return idel_rate, done_reqs
+    idle_rate = len(idle_vehicles) / len(v_list) * 100
+    logging.info('idle vehicles : '+str(len(idle_vehicles))+'/'+str(len(v_list))+' = ' +str(idle_rate)+'%' )
+    return idle_rate, done_reqs
 
     # def __init__(self, requests_list: Tuple[Request.Request, ...], vehicle_list: Tuple[Vehicle.Vehicle, ...], virtual_vehicle: Vehicle, map_graph: nx.Graph, current_time: datetime ,spc_dic
 
@@ -302,7 +320,7 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
     # Stats for log
     rate_of_epoch_sucsess = 0
     rate_of_run_sucsess = 0
-    rate_of_idel_run = 0
+    rate_of_idle_run = 0
     num_of_unserved_requests = 0
     sum_waiting_time = datetime.timedelta(seconds=0)
     sum_travel_delay = datetime.timedelta(seconds=0)
@@ -352,8 +370,8 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
 
 
         # Update all vehicles with
-        idel_rate, done_reqs = update_v_after_e(v_list, greedy.v_ok, greedy.assigned_tv, curr_time, added_time, spc_dict, map_graph)
-        rate_of_idel_run+=idel_rate
+        idle_rate, done_reqs = update_v_after_e(v_list, greedy.v_ok, greedy.assigned_tv, curr_time, added_time, spc_dict, map_graph)
+        rate_of_idle_run+=idle_rate
 
         for r in done_reqs:
             sum_waiting_time += r.actual_pick_up_time - r.time_of_request
@@ -384,7 +402,7 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
     logging.info("STATS FOR THE WHOLE RUN"+'.\n')
     if num_of_epochs:
         logging.info("Mean rate of service : " + str(rate_of_run_sucsess / num_of_epochs) + "Total unserved : " + str(num_of_unserved_requests) + " out of " + str(num_of_generated_requests) + ".\n")
-        logging.info("Mean Idel vehicles for all epochs : "+ str(rate_of_idel_run/num_of_epochs)+".\n")
+        logging.info("Mean idle vehicles for all epochs : "+ str(rate_of_idle_run/num_of_epochs)+".\n")
     logging.info("Total served : "+str(num_of_served_reqs)+" requests")
     if num_of_served_reqs>0:
         logging.info("Mean Travel Delay : "+str(sum_travel_delay/num_of_served_reqs))
@@ -461,7 +479,7 @@ def Running_simple_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, 
 if __name__ == '__main__':
     # print('this is main, now lets see...')
     # start_time=datetime.datetime.now()
-    running_ny_sim('requests.csv', 50, 5, 30, starting_time='2013-05-05 08:04:30')
+    running_ny_sim('requests.csv', 50, 1000, 30, starting_time='2013-05-05 00:00:01')
     # print('====== is took : '+str(datetime.datetime.now() - start_time))
 
 

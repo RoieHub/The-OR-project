@@ -146,6 +146,7 @@ class travel_node:
                 try:
                     extra_time_left_to_pickup -= self.time + datetime.timedelta(seconds=spc_dict[self.current_location][1][r.origin])
                 except:
+                    print("I should never get here!!!. Calling spc_dcit at travel_node.py caused an exception. Look in log for source and dest.")
                     extra_time_left_to_pickup = datetime.timedelta(seconds=-1)
                     src = str(self.current_location)
                     dst = str(r.origin)
