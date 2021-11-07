@@ -53,14 +53,13 @@ class RTV_graph:
             begining_time = datetime.datetime.now()
             v_taos = self.algo1(v,spc_dict=spc_dict, map_graph=map_graph, rv_graph=rv_graph, current_time=current_time)
             ending_time = datetime.datetime.now()
-            # print("Ended algo1 for vehicle number " + str(vehicle_counter) + ". Time taken = " + str(ending_time-begining_time) +"\n\n")
 
-            algo1_stats_for_specific_v = "Ended algo1 for vehicle number " + str(vehicle_counter) + ". Time taken = " + str(ending_time-begining_time) + ". Trips found of size X = "
-            for i in range(len(v_taos)):
-                algo1_stats_for_specific_v += str(len(v_taos[i])) + ", "
-            algo1_stats_for_specific_v = algo1_stats_for_specific_v[:-2]
-            algo1_stats_for_specific_v += ". Num of passengers on v = " + str(len(v.passengers)) + "."
-            print(algo1_stats_for_specific_v)
+            # algo1_stats_for_specific_v = "Ended algo1 for vehicle number " + str(vehicle_counter) + ". Time taken = " + str(ending_time-begining_time) + ". Trips found of size X = "
+            # for i in range(len(v_taos)):
+            #     algo1_stats_for_specific_v += str(len(v_taos[i])) + ", "
+            # algo1_stats_for_specific_v = algo1_stats_for_specific_v[:-2]
+            # algo1_stats_for_specific_v += ". Num of passengers on v = " + str(len(v.passengers)) + "."
+            # print(algo1_stats_for_specific_v)
 
             vehicle_counter += 1
             # Now merge all of v_taos entries to main tao.
