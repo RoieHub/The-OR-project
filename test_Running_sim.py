@@ -18,7 +18,8 @@ class Test_Running_sim(unittest.TestCase):
     def test_epoch_seperator_from_start(self):
         spc_dict = {}
         # Creating our map_graph.
-        map_graph = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
+        #map_graph = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
+        map_graph = Runnin_Sim.get_proper_ny_map()
         # G = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
         map_graph = ox.add_edge_speeds(map_graph)
         map_graph = ox.add_edge_travel_times(map_graph)

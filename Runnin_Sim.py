@@ -292,7 +292,18 @@ def count_requests(epochs):
         result += len(e)
     return result
 
+def get_proper_ny_map():
+    map_graph = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
+    map_graph_2 = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
 
+    neigboru = set()
+    for node in map_graph.nodes():
+        for nei in map_graph.neighbors(node):
+            neigboru.add(nei)
+    for node in map_graph.nodes():
+        if node not in neigboru:
+            map_graph_2.remove_node(node)
+    return map_graph_2
 
 def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, starting_time=None):
     curr_time = str_to_time(starting_time)
@@ -307,7 +318,7 @@ def running_ny_sim(csv_path, num_of_vehicles, num_of_epochs, epoch_len_sec, star
     spc_dict = {}
 
     # Creating our map_graph.
-    map_graph = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
+    map_graph = get_proper_ny_map()
     # G = ox.graph_from_place('Manhattan, New York City, New York, USA', network_type='drive')
     map_graph = ox.add_edge_speeds(map_graph)
     map_graph = ox.add_edge_travel_times(map_graph)
